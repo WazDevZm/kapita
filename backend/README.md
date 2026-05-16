@@ -21,7 +21,8 @@ Django REST API for Kapita - Smart business tracking made simple.
 - Python 3.10+
 - Django 4.2
 - Django REST Framework
-- PostgreSQL
+- SQLite for local development
+- PostgreSQL for production deployment
 - JWT Authentication
 
 ## Setup Instructions
@@ -49,19 +50,14 @@ cp .env.example .env
 
 ### 4. Database Setup
 
-Create PostgreSQL database:
+Local development uses SQLite automatically, so no database setup is required.
 
-```sql
-CREATE DATABASE kapita_db;
-CREATE USER kapita_user WITH PASSWORD 'your_password';
-GRANT ALL PRIVILEGES ON DATABASE kapita_db TO kapita_user;
-```
+If you deploy to Render or another hosted PostgreSQL environment, configure the `DB_ENGINE`, `DB_NAME`, `DB_USER`, `DB_PASSWORD`, `DB_HOST`, and `DB_PORT` variables there.
 
-### 5. Run Migrations
+### 5. Create the SQLite Tables
 
 ```bash
-python manage.py makemigrations
-python manage.py migrate
+python manage.py migrate --run-syncdb
 ```
 
 ### 6. Create Superuser
@@ -77,6 +73,15 @@ python manage.py runserver
 ```
 
 API will be available at `http://localhost:8000`
+
+### Local Test Login
+
+Use these credentials with the local SQLite database:
+
+```text
+Username: testuser
+Password: Test@12345
+```
 
 ## API Endpoints
 
@@ -153,7 +158,7 @@ API will be available at `http://localhost:8000`
 
 ### Railway/Render
 
-1. Create new PostgreSQL database
+1. Create a PostgreSQL database in Render
 2. Set environment variables
 3. Deploy from GitHub
 4. Run migrations:

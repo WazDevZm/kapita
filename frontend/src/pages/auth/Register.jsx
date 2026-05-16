@@ -39,8 +39,19 @@ export default function Register() {
       <div className="max-w-2xl w-full space-y-8">
         {/* Logo */}
         <div className="text-center">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-primary-600 rounded-2xl mb-4">
-            <span className="text-white font-bold text-2xl">K</span>
+          <div className="inline-flex items-center justify-center mb-6">
+            <img 
+              src="/logo1.png" 
+              alt="Kapita Logo" 
+              className="h-24 w-auto object-contain"
+              onError={(e) => {
+                e.target.style.display = 'none'
+                e.target.nextElementSibling.style.display = 'flex'
+              }}
+            />
+            <div className="w-24 h-24 bg-primary-600 rounded-2xl items-center justify-center hidden">
+              <span className="text-white font-bold text-4xl">K</span>
+            </div>
           </div>
           <h2 className="text-3xl font-bold text-gray-900 dark:text-white">
             Create your account

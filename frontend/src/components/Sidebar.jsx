@@ -52,11 +52,19 @@ export default function Sidebar({ open, setOpen }) {
         <div className="flex flex-col h-full">
           {/* Logo */}
           <div className="flex items-center justify-between h-16 px-6 border-b border-gray-200 dark:border-navy-700">
-            <Link to="/app/dashboard" className="flex items-center space-x-2">
-              <div className="w-8 h-8 bg-primary-600 rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold text-lg">K</span>
+            <Link to="/app/dashboard" className="flex items-center">
+              <img 
+                src="/logo1.png" 
+                alt="Kapita Logo" 
+                className="h-10 w-auto object-contain"
+                onError={(e) => {
+                  e.target.style.display = 'none'
+                  e.target.nextElementSibling.style.display = 'flex'
+                }}
+              />
+              <div className="w-10 h-10 bg-primary-600 rounded-lg items-center justify-center hidden">
+                <span className="text-white font-bold text-xl">K</span>
               </div>
-              <span className="text-xl font-bold text-gray-900 dark:text-white">Kapita</span>
             </Link>
             <button
               onClick={() => setOpen(false)}

@@ -34,7 +34,8 @@ A modern, full-stack web application for small businesses in Africa (especially 
 - Python 3.11
 - Django 4.2
 - Django REST Framework
-- PostgreSQL
+- SQLite for local development
+- PostgreSQL on Render deployment
 - JWT Authentication
 
 ### Frontend
@@ -50,7 +51,6 @@ A modern, full-stack web application for small businesses in Africa (especially 
 
 - Python 3.10+
 - Node.js 16+
-- PostgreSQL 12+
 - npm or yarn
 
 ## 🔧 Installation
@@ -78,12 +78,11 @@ pip install -r requirements.txt
 cp .env.example .env
 ```
 
-5. Update `.env` with your database credentials
+5. Update `.env` only if you want to override the defaults. Local development now uses SQLite by default.
 
-6. Run migrations:
+6. Create the SQLite tables:
 ```bash
-python manage.py makemigrations
-python manage.py migrate
+python manage.py migrate --run-syncdb
 ```
 
 7. Create superuser:
@@ -149,8 +148,17 @@ npm run dev
 ```
 
 Notes:
-- Ensure your backend `.env` (or environment variables) point to a running PostgreSQL instance before running migrations.
+- Local development uses SQLite, so no database server is required to run the backend on your machine.
 - The frontend expects the API at `http://localhost:8000/api` by default; update `VITE_API_URL` in `frontend/.env` if different.
+
+### Local Test Login
+
+Use these credentials to test the app locally:
+
+```text
+Username: testuser
+Password: Test@12345
+```
 
 ## 📱 Usage
 

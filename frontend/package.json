@@ -18,7 +18,9 @@
     "lucide-react": "^0.294.0",
     "date-fns": "^2.30.0",
     "react-hook-form": "^7.48.2",
-    "zustand": "^4.4.7"
+    "zustand": "^4.4.7",
+    "jspdf": "^2.5.1",
+    "jspdf-autotable": "^3.8.2"
   },
   "devDependencies": {
     "@types/react": "^18.2.43",

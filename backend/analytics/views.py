@@ -362,3 +362,312 @@ class ProjectionsView(APIView):
                 'credit_recovery_impact': float(outstanding_credit),
             }
         })
+
+
+
+class MonthlyAnalyticsView(APIView):
+    """Monthly breakdown analytics (Jan-Dec)"""
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        user = request.user
+        year = request.query_params.get('year', datetime.now().year)
+        
+        # Initialize months
+        months = []
+        for month in range(1, 13):
+            month_start = datetime(int(year), month, 1)
+            if month == 12:
+                month_end = datetime(int(year) + 1, 1, 1)
+            else:
+                month_end = datetime(int(year), month + 1, 1)
+            
+            # Sales for this month
+            month_sales = Sale.objects.filter(
+                user=user,
+                created_at__gte=month_start,
+                created_at__lt=month_end
+            )
+            
+            # Expenses for this month
+            month_expenses = Expense.objects.filter(
+                user=user,
+                date__gte=month_start.date(),
+                date__lt=month_end.date()
+            )
+            
+            # Credits for this month
+            month_credits = Credit.objects.filter(
+                user=user,
+                created_at__gte=month_start,
+                created_at__lt=month_end
+            )
+            
+            total_sales = month_sales.aggregate(total=Sum('total_amount'))['total'] or 0
+            total_profit = sum(sale.profit for sale in month_sales)
+            total_expenses = month_expenses.aggregate(total=Sum('amount'))['total'] or 0
+            net_profit = total_profit - total_expenses
+            
+            months.append({
+                'month': month,
+                'month_name': month_start.strftime('%B'),
+                'month_short': month_start.strftime('%b'),
+                'total_sales': float(total_sales),
+                'total_profit': float(total_profit),
+                'total_expenses': float(total_expenses),
+                'net_profit': float(net_profit),
+                'transaction_count': month_sales.count(),
+                'credit_issued': float(month_credits.aggregate(total=Sum('amount_owed'))['total'] or 0),
+                'credit_collected': float(month_credits.aggregate(total=Sum('amount_paid'))['total'] or 0),
+            })
+        
+        # Year totals
+        year_totals = {
+            'total_sales': sum(m['total_sales'] for m in months),
+            'total_profit': sum(m['total_profit'] for m in months),
+            'total_expenses': sum(m['total_expenses'] for m in months),
+            'net_profit': sum(m['net_profit'] for m in months),
+            'transaction_count': sum(m['transaction_count'] for m in months),
+        }
+        
+        return Response({
+            'year': year,
+            'months': months,
+            'year_totals': year_totals,
+        })
+
+
+class ComprehensiveReportView(APIView):
+    """Generate comprehensive PDF report"""
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        user = request.user
+        report_type = request.query_params.get('type', 'monthly')
+        month = request.query_params.get('month')
+        year = request.query_params.get('year', datetime.now().year)
+        
+        # Determine date range
+        if report_type == 'monthly' and month:
+            start_date = datetime(int(year), int(month), 1)
+            if int(month) == 12:
+                end_date = datetime(int(year) + 1, 1, 1)
+            else:
+                end_date = datetime(int(year), int(month) + 1, 1)
+        elif report_type == 'yearly':
+            start_date = datetime(int(year), 1, 1)
+            end_date = datetime(int(year) + 1, 1, 1)
+        else:
+            start_date = request.query_params.get('start_date')
+            end_date = request.query_params.get('end_date')
+            if start_date:
+                start_date = datetime.fromisoformat(start_date)
+            if end_date:
+                end_date = datetime.fromisoformat(end_date)
+        
+        # Gather comprehensive data
+        sales = Sale.objects.filter(
+            user=user,
+            created_at__gte=start_date,
+            created_at__lt=end_date
+        ).select_related('product', 'customer')
+        
+        expenses = Expense.objects.filter(
+            user=user,
+            date__gte=start_date.date(),
+            date__lt=end_date.date()
+        )
+        
+        credits = Credit.objects.filter(
+            user=user,
+            created_at__gte=start_date,
+            created_at__lt=end_date
+        ).select_related('customer')
+        
+        products = Product.objects.filter(user=user)
+        customers = Customer.objects.filter(user=user)
+        
+        # Sales analysis
+        total_sales = sales.aggregate(total=Sum('total_amount'))['total'] or 0
+        total_profit = sum(sale.profit for sale in sales)
+        
+        sales_by_payment = {}
+        for payment_type in ['cash', 'mobile_money', 'credit']:
+            sales_by_payment[payment_type] = sales.filter(
+                payment_type=payment_type
+            ).aggregate(total=Sum('total_amount'))['total'] or 0
+        
+        # Top products
+        top_products = sales.values(
+            'product__name'
+        ).annotate(
+            total_quantity=Sum('quantity'),
+            total_revenue=Sum('total_amount'),
+            total_profit=Sum('total_amount')
+        ).order_by('-total_revenue')[:10]
+        
+        # Expense analysis
+        total_expenses = expenses.aggregate(total=Sum('amount'))['total'] or 0
+        
+        expenses_by_category = {}
+        for category, _ in Expense.CATEGORY_CHOICES:
+            expenses_by_category[category] = expenses.filter(
+                category=category
+            ).aggregate(total=Sum('amount'))['total'] or 0
+        
+        # Credit analysis
+        total_credit_issued = credits.aggregate(total=Sum('amount_owed'))['total'] or 0
+        total_credit_collected = credits.aggregate(total=Sum('amount_paid'))['total'] or 0
+        outstanding_credit = credits.filter(
+            status__in=['pending', 'partial', 'overdue']
+        ).aggregate(total=Sum('remaining_balance'))['total'] or 0
+        
+        # Top debtors
+        top_debtors = credits.filter(
+            status__in=['pending', 'partial', 'overdue']
+        ).select_related('customer').order_by('-remaining_balance')[:10]
+        
+        # Inventory analysis
+        inventory_value = sum(p.inventory_value for p in products)
+        low_stock_products = [p for p in products if p.is_low_stock]
+        
+        # Customer analysis
+        top_customers = []
+        for customer in customers:
+            customer_sales = sales.filter(customer=customer)
+            if customer_sales.exists():
+                top_customers.append({
+                    'name': customer.name,
+                    'total_purchases': float(customer_sales.aggregate(total=Sum('total_amount'))['total'] or 0),
+                    'transaction_count': customer_sales.count(),
+                })
+        top_customers = sorted(top_customers, key=lambda x: x['total_purchases'], reverse=True)[:10]
+        
+        # Financial summary
+        net_profit = total_profit - total_expenses
+        profit_margin = (total_profit / total_sales * 100) if total_sales > 0 else 0
+        
+        report_data = {
+            'report_info': {
+                'type': report_type,
+                'period': {
+                    'start': start_date.isoformat(),
+                    'end': end_date.isoformat(),
+                    'label': start_date.strftime('%B %Y') if report_type == 'monthly' else f'Year {year}'
+                },
+                'generated_at': datetime.now().isoformat(),
+                'business_name': user.business_name or 'Your Business',
+                'currency': user.currency,
+            },
+            'executive_summary': {
+                'total_sales': float(total_sales),
+                'total_profit': float(total_profit),
+                'total_expenses': float(total_expenses),
+                'net_profit': float(net_profit),
+                'profit_margin': float(profit_margin),
+                'transaction_count': sales.count(),
+            },
+            'sales_analysis': {
+                'total_sales': float(total_sales),
+                'by_payment_type': {k: float(v) for k, v in sales_by_payment.items()},
+                'top_products': [
+                    {
+                        'name': item['product__name'],
+                        'quantity': item['total_quantity'],
+                        'revenue': float(item['total_revenue']),
+                    }
+                    for item in top_products
+                ],
+                'daily_average': float(total_sales / max((end_date - start_date).days, 1)),
+            },
+            'expense_analysis': {
+                'total_expenses': float(total_expenses),
+                'by_category': {k: float(v) for k, v in expenses_by_category.items()},
+                'largest_expenses': [
+                    {
+                        'title': exp.title,
+                        'amount': float(exp.amount),
+                        'category': exp.category,
+                        'date': exp.date.isoformat(),
+                    }
+                    for exp in expenses.order_by('-amount')[:10]
+                ],
+            },
+            'credit_analysis': {
+                'total_issued': float(total_credit_issued),
+                'total_collected': float(total_credit_collected),
+                'outstanding': float(outstanding_credit),
+                'collection_rate': float((total_credit_collected / total_credit_issued * 100) if total_credit_issued > 0 else 0),
+                'top_debtors': [
+                    {
+                        'customer': credit.customer.name,
+                        'amount_owed': float(credit.remaining_balance),
+                        'due_date': credit.due_date.isoformat() if credit.due_date else None,
+                        'status': credit.status,
+                    }
+                    for credit in top_debtors
+                ],
+            },
+            'inventory_analysis': {
+                'total_products': products.count(),
+                'inventory_value': float(inventory_value),
+                'low_stock_count': len(low_stock_products),
+                'low_stock_products': [
+                    {
+                        'name': p.name,
+                        'quantity': p.quantity,
+                        'minimum_stock': p.minimum_stock,
+                    }
+                    for p in low_stock_products[:10]
+                ],
+            },
+            'customer_analysis': {
+                'total_customers': customers.count(),
+                'top_customers': top_customers,
+            },
+            'recommendations': self.generate_recommendations(
+                net_profit, profit_margin, outstanding_credit, len(low_stock_products)
+            ),
+        }
+        
+        return Response(report_data)
+    
+    def generate_recommendations(self, net_profit, profit_margin, outstanding_credit, low_stock_count):
+        recommendations = []
+        
+        if net_profit < 0:
+            recommendations.append({
+                'type': 'warning',
+                'title': 'Negative Profit',
+                'message': 'Your expenses exceed your profits. Review and reduce unnecessary expenses.'
+            })
+        
+        if profit_margin < 20:
+            recommendations.append({
+                'type': 'info',
+                'title': 'Low Profit Margin',
+                'message': 'Consider increasing prices or reducing costs to improve profit margins.'
+            })
+        
+        if outstanding_credit > 0:
+            recommendations.append({
+                'type': 'warning',
+                'title': 'Outstanding Credit',
+                'message': f'You have outstanding credit. Follow up with customers to collect payments.'
+            })
+        
+        if low_stock_count > 0:
+            recommendations.append({
+                'type': 'alert',
+                'title': 'Low Stock Alert',
+                'message': f'{low_stock_count} product(s) are running low. Restock soon to avoid lost sales.'
+            })
+        
+        if net_profit > 0 and profit_margin > 20:
+            recommendations.append({
+                'type': 'success',
+                'title': 'Healthy Business',
+                'message': 'Your business is performing well. Consider reinvesting profits for growth.'
+            })
+        
+        return recommendations

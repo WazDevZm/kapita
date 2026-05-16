@@ -145,6 +145,8 @@ export const analyticsAPI = {
   getCashflow: (params) => api.get('/analytics/cashflow/', { params }),
   getReports: (params) => api.get('/analytics/reports/', { params }),
   getProjections: (params) => api.get('/analytics/projections/', { params }),
+  getMonthly: (params) => api.get('/analytics/monthly/', { params }),
+  getComprehensiveReport: (params) => api.get('/analytics/comprehensive-report/', { params }),
 }
 
 // Chat API
