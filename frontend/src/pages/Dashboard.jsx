@@ -1,0 +1,265 @@
+import { useEffect, useState } from 'react'
+import { 
+  DollarSign, 
+  TrendingUp, 
+  TrendingDown, 
+  Package, 
+  CreditCard, 
+  AlertTriangle,
+  ShoppingCart
+} from 'lucide-react'
+import { StatCard } from '../components/Card'
+import Card from '../components/Card'
+import Loading from '../components/Loading'
+import { analyticsAPI, salesAPI, expensesAPI } from '../services/api'
+import { LineChart, Line, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts'
+
+export default function Dashboard() {
+  const [loading, setLoading] = useState(true)
+  const [dashboardData, setDashboardData] = useState(null)
+  const [dailySales, setDailySales] = useState([])
+  const [expensesByCategory, setExpensesByCategory] = useState([])
+
+  useEffect(() => {
+    fetchDashboardData()
+  }, [])
+
+  const fetchDashboardData = async () => {
+    try {
+      const [dashboardRes, salesRes, expensesRes] = await Promise.all([
+        analyticsAPI.getDashboard(),
+        salesAPI.getDailySales(),
+        expensesAPI.getByCategory(),
+      ])
+
+      setDashboardData(dashboardRes.data)
+      setDailySales(salesRes.data)
+      setExpensesByCategory(expensesRes.data)
+    } catch (error) {
+      console.error('Failed to fetch dashboard data:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  if (loading) return <Loading fullScreen />
+
+  const { summary, recent_activity, alerts } = dashboardData || {}
+
+  const COLORS = ['#10b981', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899']
+
+  return (
+    <div className="space-y-6">
+      {/* Header */}
+      <div>
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Dashboard</h1>
+        <p className="text-gray-600 dark:text-gray-400">Overview of your business performance</p>
+      </div>
+
+      {/* Alerts */}
+      {(alerts?.low_stock_count > 0 || alerts?.overdue_credits > 0 || alerts?.negative_cashflow) && (
+        <Card className="bg-yellow-50 dark:bg-yellow-900/20 border-yellow-200 dark:border-yellow-800">
+          <div className="flex items-start space-x-3">
+            <AlertTriangle className="w-5 h-5 text-yellow-600 dark:text-yellow-400 mt-0.5" />
+            <div className="flex-1">
+              <h3 className="font-semibold text-yellow-900 dark:text-yellow-100">Alerts</h3>
+              <ul className="mt-2 space-y-1 text-sm text-yellow-800 dark:text-yellow-200">
+                {alerts.low_stock_count > 0 && (
+                  <li>• {alerts.low_stock_count} product(s) are low on stock</li>
+                )}
+                {alerts.overdue_credits > 0 && (
+                  <li>• {alerts.overdue_credits} overdue credit(s) need attention</li>
+                )}
+                {alerts.negative_cashflow && (
+                  <li>• Negative cashflow detected - review your expenses</li>
+                )}
+              </ul>
+            </div>
+          </div>
+        </Card>
+      )}
+
+      {/* Stats Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <StatCard
+          title="Total Revenue"
+          value={`ZMW ${summary?.total_revenue?.toLocaleString() || 0}`}
+          icon={DollarSign}
+          color="green"
+        />
+        <StatCard
+          title="Total Expenses"
+          value={`ZMW ${summary?.total_expenses?.toLocaleString() || 0}`}
+          icon={TrendingDown}
+          color="red"
+        />
+        <StatCard
+          title="Net Profit"
+          value={`ZMW ${summary?.net_profit?.toLocaleString() || 0}`}
+          icon={TrendingUp}
+          color="blue"
+        />
+        <StatCard
+          title="Current Capital"
+          value={`ZMW ${summary?.current_capital?.toLocaleString() || 0}`}
+          icon={DollarSign}
+          color="primary"
+        />
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <StatCard
+          title="Cash Available"
+          value={`ZMW ${summary?.cash_available?.toLocaleString() || 0}`}
+          icon={DollarSign}
+          color="green"
+        />
+        <StatCard
+          title="Inventory Value"
+          value={`ZMW ${summary?.inventory_value?.toLocaleString() || 0}`}
+          icon={Package}
+          color="blue"
+        />
+        <StatCard
+          title="Credit Outstanding"
+          value={`ZMW ${summary?.credit_outstanding?.toLocaleString() || 0}`}
+          icon={CreditCard}
+          color="yellow"
+        />
+        <StatCard
+          title="Reinvestments"
+          value={`ZMW ${summary?.total_reinvestment?.toLocaleString() || 0}`}
+          icon={TrendingUp}
+          color="primary"
+        />
+      </div>
+
+      {/* Charts */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Revenue Trend */}
+        <Card>
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+            Revenue Trend (Last 30 Days)
+          </h3>
+          <ResponsiveContainer width="100%" height={300}>
+            <LineChart data={dailySales}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+              <XAxis dataKey="day" stroke="#9ca3af" />
+              <YAxis stroke="#9ca3af" />
+              <Tooltip 
+                contentStyle={{ 
+                  backgroundColor: '#1e293b', 
+                  border: 'none',
+                  borderRadius: '8px',
+                  color: '#fff'
+                }} 
+              />
+              <Legend />
+              <Line 
+                type="monotone" 
+                dataKey="total" 
+                stroke="#10b981" 
+                strokeWidth={2}
+                name="Revenue"
+              />
+            </LineChart>
+          </ResponsiveContainer>
+        </Card>
+
+        {/* Expenses by Category */}
+        <Card>
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+            Expenses by Category
+          </h3>
+          <ResponsiveContainer width="100%" height={300}>
+            <PieChart>
+              <Pie
+                data={expensesByCategory}
+                cx="50%"
+                cy="50%"
+                labelLine={false}
+                label={({ category, percent }) => `${category}: ${(percent * 100).toFixed(0)}%`}
+                outerRadius={100}
+                fill="#8884d8"
+                dataKey="total"
+              >
+                {expensesByCategory.map((entry, index) => (
+                  <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                ))}
+              </Pie>
+              <Tooltip 
+                contentStyle={{ 
+                  backgroundColor: '#1e293b', 
+                  border: 'none',
+                  borderRadius: '8px',
+                  color: '#fff'
+                }} 
+              />
+            </PieChart>
+          </ResponsiveContainer>
+        </Card>
+      </div>
+
+      {/* Recent Activity */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Recent Sales */}
+        <Card>
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+            Recent Sales
+          </h3>
+          <div className="space-y-3">
+            {recent_activity?.sales?.slice(0, 5).map((sale) => (
+              <div key={sale.id} className="flex items-center justify-between py-2 border-b border-gray-200 dark:border-navy-700 last:border-0">
+                <div className="flex items-center space-x-3">
+                  <div className="p-2 bg-green-50 dark:bg-green-900/20 rounded-lg">
+                    <ShoppingCart className="w-4 h-4 text-green-600 dark:text-green-400" />
+                  </div>
+                  <div>
+                    <p className="font-medium text-gray-900 dark:text-white">
+                      {sale.product_details?.name}
+                    </p>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">
+                      {new Date(sale.created_at).toLocaleDateString()}
+                    </p>
+                  </div>
+                </div>
+                <span className="font-semibold text-green-600 dark:text-green-400">
+                  +ZMW {sale.total_amount}
+                </span>
+              </div>
+            ))}
+          </div>
+        </Card>
+
+        {/* Recent Expenses */}
+        <Card>
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+            Recent Expenses
+          </h3>
+          <div className="space-y-3">
+            {recent_activity?.expenses?.slice(0, 5).map((expense) => (
+              <div key={expense.id} className="flex items-center justify-between py-2 border-b border-gray-200 dark:border-navy-700 last:border-0">
+                <div className="flex items-center space-x-3">
+                  <div className="p-2 bg-red-50 dark:bg-red-900/20 rounded-lg">
+                    <TrendingDown className="w-4 h-4 text-red-600 dark:text-red-400" />
+                  </div>
+                  <div>
+                    <p className="font-medium text-gray-900 dark:text-white">
+                      {expense.title}
+                    </p>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">
+                      {new Date(expense.date).toLocaleDateString()}
+                    </p>
+                  </div>
+                </div>
+                <span className="font-semibold text-red-600 dark:text-red-400">
+                  -ZMW {expense.amount}
+                </span>
+              </div>
+            ))}
+          </div>
+        </Card>
+      </div>
+    </div>
+  )
+}

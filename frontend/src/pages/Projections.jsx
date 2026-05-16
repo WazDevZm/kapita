@@ -1,0 +1,298 @@
+import { useEffect, useState } from 'react'
+import { TrendingUp, DollarSign, Calendar, AlertCircle } from 'lucide-react'
+import Card, { StatCard } from '../components/Card'
+import Loading from '../components/Loading'
+import { analyticsAPI } from '../services/api'
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts'
+
+export default function Projections() {
+  const [loading, setLoading] = useState(true)
+  const [projections, setProjections] = useState(null)
+  const [timeframe, setTimeframe] = useState('30') // 30, 60, 90 days or monthly
+
+  useEffect(() => {
+    fetchProjections()
+  }, [timeframe])
+
+  const fetchProjections = async () => {
+    try {
+      const response = await analyticsAPI.getProjections({ days: timeframe })
+      setProjections(response.data)
+    } catch (error) {
+      console.error('Failed to fetch projections:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  if (loading) return <Loading fullScreen />
+
+  const { current_metrics, averages, projections_30_days, daily_trend, insights } = projections || {}
+
+  // Calculate monthly projections
+  const monthlyProjections = timeframe === 'monthly' ? {
+    projected_revenue: averages?.avg_transaction * 30,
+    projected_expenses: averages?.avg_expense * 30,
+    projected_profit: (averages?.avg_transaction * 30) - (averages?.avg_expense * 30)
+  } : null
+
+  return (
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Business Projections</h1>
+          <p className="text-gray-600 dark:text-gray-400">Forecast your business performance</p>
+        </div>
+        
+        <div className="flex items-center space-x-2">
+          <Calendar className="w-5 h-5 text-gray-500" />
+          <select
+            value={timeframe}
+            onChange={(e) => setTimeframe(e.target.value)}
+            className="input w-auto"
+          >
+            <option value="30">30 Days</option>
+            <option value="60">60 Days</option>
+            <option value="90">90 Days</option>
+            <option value="monthly">Monthly View</option>
+          </select>
+        </div>
+      </div>
+
+      {/* Insights Alert */}
+      {insights && (
+        <Card className={`${
+          insights.is_profitable 
+            ? 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800' 
+            : 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800'
+        }`}>
+          <div className="flex items-start space-x-3">
+            <AlertCircle className={`w-5 h-5 mt-0.5 ${
+              insights.is_profitable ? 'text-green-600' : 'text-red-600'
+            }`} />
+            <div>
+              <h3 className={`font-semibold ${
+                insights.is_profitable ? 'text-green-900 dark:text-green-100' : 'text-red-900 dark:text-red-100'
+              }`}>
+                {insights.is_profitable ? 'Profitable Projection' : 'Loss Projection'}
+              </h3>
+              <p className={`text-sm mt-1 ${
+                insights.is_profitable ? 'text-green-800 dark:text-green-200' : 'text-red-800 dark:text-red-200'
+              }`}>
+                Based on current trends, your business is projected to {insights.is_profitable ? 'make' : 'lose'} ZMW {Math.abs(projections_30_days?.projected_profit || 0).toLocaleString()} over the next {timeframe === 'monthly' ? 'month' : `${timeframe} days`}.
+                {insights.profit_margin > 0 && ` Profit margin: ${insights.profit_margin.toFixed(1)}%`}
+              </p>
+            </div>
+          </div>
+        </Card>
+      )}
+
+      {/* Current Performance */}
+      <div>
+        <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">Current Performance</h2>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <StatCard
+            title="Total Sales"
+            value={`ZMW ${current_metrics?.total_sales?.toLocaleString() || 0}`}
+            icon={DollarSign}
+            color="green"
+          />
+          <StatCard
+            title="Total Expenses"
+            value={`ZMW ${current_metrics?.total_expenses?.toLocaleString() || 0}`}
+            icon={DollarSign}
+            color="red"
+          />
+          <StatCard
+            title="Net Profit"
+            value={`ZMW ${current_metrics?.total_profit?.toLocaleString() || 0}`}
+            icon={TrendingUp}
+            color="blue"
+          />
+        </div>
+      </div>
+
+      {/* Averages */}
+      <div>
+        <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">Average Metrics</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <Card>
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-600 dark:text-gray-400">Average Transaction</p>
+                <p className="text-2xl font-bold text-gray-900 dark:text-white mt-1">
+                  ZMW {averages?.avg_transaction?.toLocaleString() || 0}
+                </p>
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                  Based on {current_metrics?.sales_count || 0} transactions
+                </p>
+              </div>
+              <div className="p-3 bg-green-50 dark:bg-green-900/20 rounded-lg">
+                <TrendingUp className="w-6 h-6 text-green-600 dark:text-green-400" />
+              </div>
+            </div>
+          </Card>
+
+          <Card>
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-600 dark:text-gray-400">Average Expense</p>
+                <p className="text-2xl font-bold text-gray-900 dark:text-white mt-1">
+                  ZMW {averages?.avg_expense?.toLocaleString() || 0}
+                </p>
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                  Based on {current_metrics?.expense_count || 0} expenses
+                </p>
+              </div>
+              <div className="p-3 bg-red-50 dark:bg-red-900/20 rounded-lg">
+                <DollarSign className="w-6 h-6 text-red-600 dark:text-red-400" />
+              </div>
+            </div>
+          </Card>
+        </div>
+      </div>
+
+      {/* Projections */}
+      <div>
+        <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
+          {timeframe === 'monthly' ? 'Monthly' : `${timeframe}-Day`} Projections
+        </h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <StatCard
+            title="Projected Revenue"
+            value={`ZMW ${projections_30_days?.projected_revenue?.toLocaleString() || 0}`}
+            icon={DollarSign}
+            color="green"
+          />
+          <StatCard
+            title="Projected Expenses"
+            value={`ZMW ${projections_30_days?.projected_expenses?.toLocaleString() || 0}`}
+            icon={DollarSign}
+            color="red"
+          />
+          <StatCard
+            title="Projected Profit"
+            value={`ZMW ${projections_30_days?.projected_profit?.toLocaleString() || 0}`}
+            icon={TrendingUp}
+            color={projections_30_days?.projected_profit >= 0 ? 'blue' : 'red'}
+          />
+          <StatCard
+            title="Outstanding Credit"
+            value={`ZMW ${projections_30_days?.outstanding_credit?.toLocaleString() || 0}`}
+            icon={DollarSign}
+            color="yellow"
+          />
+        </div>
+      </div>
+
+      {/* Expected Income */}
+      <Card>
+        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+          Expected Total Income
+        </h3>
+        <div className="space-y-3">
+          <div className="flex justify-between items-center">
+            <span className="text-gray-600 dark:text-gray-400">Projected Revenue</span>
+            <span className="font-semibold text-gray-900 dark:text-white">
+              ZMW {projections_30_days?.projected_revenue?.toLocaleString() || 0}
+            </span>
+          </div>
+          <div className="flex justify-between items-center">
+            <span className="text-gray-600 dark:text-gray-400">Outstanding Credit Collection</span>
+            <span className="font-semibold text-gray-900 dark:text-white">
+              ZMW {projections_30_days?.outstanding_credit?.toLocaleString() || 0}
+            </span>
+          </div>
+          <div className="pt-3 border-t border-gray-200 dark:border-navy-700">
+            <div className="flex justify-between items-center">
+              <span className="font-semibold text-gray-900 dark:text-white">Expected Total Income</span>
+              <span className="font-bold text-primary-600 dark:text-primary-400 text-xl">
+                ZMW {projections_30_days?.expected_income?.toLocaleString() || 0}
+              </span>
+            </div>
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+              If all outstanding credits are collected
+            </p>
+          </div>
+        </div>
+      </Card>
+
+      {/* Sales Trend */}
+      <Card>
+        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+          Sales Trend (Last 30 Days)
+        </h3>
+        <ResponsiveContainer width="100%" height={300}>
+          <LineChart data={daily_trend}>
+            <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+            <XAxis dataKey="day" stroke="#9ca3af" />
+            <YAxis stroke="#9ca3af" />
+            <Tooltip 
+              contentStyle={{ 
+                backgroundColor: '#1e293b', 
+                border: 'none',
+                borderRadius: '8px',
+                color: '#fff'
+              }} 
+            />
+            <Legend />
+            <Line 
+              type="monotone" 
+              dataKey="total" 
+              stroke="#10b981" 
+              strokeWidth={2}
+              name="Daily Sales"
+            />
+          </LineChart>
+        </ResponsiveContainer>
+      </Card>
+
+      {/* Recommendations */}
+      <Card>
+        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+          Recommendations
+        </h3>
+        <div className="space-y-3">
+          {insights?.is_profitable ? (
+            <>
+              <div className="flex items-start space-x-2">
+                <div className="w-2 h-2 bg-green-500 rounded-full mt-2" />
+                <p className="text-gray-700 dark:text-gray-300">
+                  Your business is on a profitable trajectory. Consider reinvesting some profits to grow further.
+                </p>
+              </div>
+              <div className="flex items-start space-x-2">
+                <div className="w-2 h-2 bg-green-500 rounded-full mt-2" />
+                <p className="text-gray-700 dark:text-gray-300">
+                  Focus on collecting outstanding credits to improve cash flow by ZMW {insights?.credit_recovery_impact?.toLocaleString()}.
+                </p>
+              </div>
+            </>
+          ) : (
+            <>
+              <div className="flex items-start space-x-2">
+                <div className="w-2 h-2 bg-red-500 rounded-full mt-2" />
+                <p className="text-gray-700 dark:text-gray-300">
+                  Review your expenses and identify areas where you can reduce costs.
+                </p>
+              </div>
+              <div className="flex items-start space-x-2">
+                <div className="w-2 h-2 bg-red-500 rounded-full mt-2" />
+                <p className="text-gray-700 dark:text-gray-300">
+                  Consider strategies to increase sales volume or average transaction value.
+                </p>
+              </div>
+            </>
+          )}
+          <div className="flex items-start space-x-2">
+            <div className="w-2 h-2 bg-blue-500 rounded-full mt-2" />
+            <p className="text-gray-700 dark:text-gray-300">
+              Monitor your daily sales trend and adjust your strategy based on patterns.
+            </p>
+          </div>
+        </div>
+      </Card>
+    </div>
+  )
+}
