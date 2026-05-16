@@ -39,6 +39,23 @@ export default function Analytics() {
   if (loading) return <Loading fullScreen />
 
   const COLORS = ['#10b981', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#14b8a6', '#f97316']
+  const topProductsChartData = Array.isArray(topProducts)
+    ? topProducts.map((item) => ({
+        ...item,
+        productName: item?.product_name || item?.product__name || 'Unknown product',
+        total_revenue: Number(item?.total_revenue || 0),
+        total_quantity: Number(item?.total_quantity || 0),
+      }))
+    : []
+  const expensesChartData = Array.isArray(expensesByCategory)
+    ? expensesByCategory.map((item) => ({
+        ...item,
+        categoryLabel: String(item?.category || '').replace(/_/g, ' '),
+        total: Number(item?.total || 0),
+      }))
+    : []
+  const hasTopProductsData = topProductsChartData.length > 0
+  const hasExpensesData = expensesChartData.length > 0
 
   return (
     <div className="space-y-6">
@@ -161,22 +178,28 @@ export default function Analytics() {
           <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
             Top Selling Products
           </h3>
-          <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={topProducts}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
-              <XAxis dataKey="product__name" stroke="#9ca3af" angle={-45} textAnchor="end" height={100} />
-              <YAxis stroke="#9ca3af" />
-              <Tooltip 
-                contentStyle={{ 
-                  backgroundColor: '#1e293b', 
-                  border: 'none',
-                  borderRadius: '8px',
-                  color: '#fff'
-                }} 
-              />
-              <Bar dataKey="total_revenue" fill="#10b981" name="Revenue" />
-            </BarChart>
-          </ResponsiveContainer>
+          {hasTopProductsData ? (
+            <ResponsiveContainer width="100%" height={300}>
+              <BarChart data={topProductsChartData}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+                <XAxis dataKey="productName" stroke="#9ca3af" angle={-45} textAnchor="end" height={100} />
+                <YAxis stroke="#9ca3af" />
+                <Tooltip 
+                  contentStyle={{ 
+                    backgroundColor: '#1e293b', 
+                    border: 'none',
+                    borderRadius: '8px',
+                    color: '#fff'
+                  }} 
+                />
+                <Bar dataKey="total_revenue" fill="#10b981" name="Revenue" />
+              </BarChart>
+            </ResponsiveContainer>
+          ) : (
+            <div className="flex h-[300px] items-center justify-center rounded-xl border border-dashed border-gray-300 dark:border-navy-700 text-sm text-gray-500 dark:text-gray-400">
+              No sales yet. Top products will appear after you record sales.
+            </div>
+          )}
         </Card>
 
         {/* Expenses Distribution */}
@@ -184,32 +207,38 @@ export default function Analytics() {
           <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
             Expense Distribution
           </h3>
-          <ResponsiveContainer width="100%" height={300}>
-            <PieChart>
-              <Pie
-                data={expensesByCategory}
-                cx="50%"
-                cy="50%"
-                labelLine={false}
-                label={({ category, percent }) => `${category}: ${(percent * 100).toFixed(0)}%`}
-                outerRadius={100}
-                fill="#8884d8"
-                dataKey="total"
-              >
-                {expensesByCategory.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                ))}
-              </Pie>
-              <Tooltip 
-                contentStyle={{ 
-                  backgroundColor: '#1e293b', 
-                  border: 'none',
-                  borderRadius: '8px',
-                  color: '#fff'
-                }} 
-              />
-            </PieChart>
-          </ResponsiveContainer>
+          {hasExpensesData ? (
+            <ResponsiveContainer width="100%" height={300}>
+              <PieChart>
+                <Pie
+                  data={expensesChartData}
+                  cx="50%"
+                  cy="50%"
+                  labelLine={false}
+                  label={({ categoryLabel, percent }) => `${categoryLabel}: ${(percent * 100).toFixed(0)}%`}
+                  outerRadius={100}
+                  fill="#8884d8"
+                  dataKey="total"
+                >
+                  {expensesChartData.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                  ))}
+                </Pie>
+                <Tooltip 
+                  contentStyle={{ 
+                    backgroundColor: '#1e293b', 
+                    border: 'none',
+                    borderRadius: '8px',
+                    color: '#fff'
+                  }} 
+                />
+              </PieChart>
+            </ResponsiveContainer>
+          ) : (
+            <div className="flex h-[300px] items-center justify-center rounded-xl border border-dashed border-gray-300 dark:border-navy-700 text-sm text-gray-500 dark:text-gray-400">
+              No expenses yet. Add expenses to populate this chart.
+            </div>
+          )}
         </Card>
       </div>
     </div>

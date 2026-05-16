@@ -66,6 +66,39 @@ export default function Dashboard() {
   ]
 
   const COLORS = ['#10b981', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899']
+  const formatChartDay = (value) => {
+    if (!value) return 'No date'
+
+    const rawValue = String(value)
+    if (/^\d{4}-\d{2}-\d{2}$/.test(rawValue)) {
+      const [year, month, day] = rawValue.split('-')
+      const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+      return `${monthNames[Number(month) - 1]} ${Number(day)}`
+    }
+
+    const parsedDate = new Date(rawValue)
+    if (!Number.isNaN(parsedDate.getTime())) {
+      return new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric' }).format(parsedDate)
+    }
+
+    return rawValue
+  }
+  const dailySalesChartData = Array.isArray(dailySales)
+    ? dailySales.map((item) => ({
+        ...item,
+        dayLabel: formatChartDay(item?.day),
+        total: Number(item?.total || 0),
+      }))
+    : []
+  const expensesChartData = Array.isArray(expensesByCategory)
+    ? expensesByCategory.map((item) => ({
+        ...item,
+        categoryLabel: String(item?.category || '').replace(/_/g, ' '),
+        total: Number(item?.total || 0),
+      }))
+    : []
+  const hasDailySalesData = dailySalesChartData.length > 0
+  const hasExpenseData = expensesChartData.length > 0
 
   return (
     <div className="space-y-6">
@@ -160,29 +193,35 @@ export default function Dashboard() {
           <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
             Revenue Trend (Last 30 Days)
           </h3>
-          <ResponsiveContainer width="100%" height={300}>
-            <LineChart data={dailySales}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
-              <XAxis dataKey="day" stroke="#9ca3af" />
-              <YAxis stroke="#9ca3af" />
-              <Tooltip 
-                contentStyle={{ 
-                  backgroundColor: '#1e293b', 
-                  border: 'none',
-                  borderRadius: '8px',
-                  color: '#fff'
-                }} 
-              />
-              <Legend />
-              <Line 
-                type="monotone" 
-                dataKey="total" 
-                stroke="#10b981" 
-                strokeWidth={2}
-                name="Revenue"
-              />
-            </LineChart>
-          </ResponsiveContainer>
+          {hasDailySalesData ? (
+            <ResponsiveContainer width="100%" height={300}>
+              <LineChart data={dailySalesChartData}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+                <XAxis dataKey="dayLabel" stroke="#9ca3af" />
+                <YAxis stroke="#9ca3af" />
+                <Tooltip 
+                  contentStyle={{ 
+                    backgroundColor: '#1e293b', 
+                    border: 'none',
+                    borderRadius: '8px',
+                    color: '#fff'
+                  }} 
+                />
+                <Legend />
+                <Line 
+                  type="monotone" 
+                  dataKey="total" 
+                  stroke="#10b981" 
+                  strokeWidth={2}
+                  name="Revenue"
+                />
+              </LineChart>
+            </ResponsiveContainer>
+          ) : (
+            <div className="flex h-[300px] items-center justify-center rounded-xl border border-dashed border-gray-300 dark:border-navy-700 text-sm text-gray-500 dark:text-gray-400">
+              No sales data yet. Add sales to populate this chart.
+            </div>
+          )}
         </Card>
 
         {/* Expenses by Category */}
@@ -190,32 +229,38 @@ export default function Dashboard() {
           <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
             Expenses by Category
           </h3>
-          <ResponsiveContainer width="100%" height={300}>
-            <PieChart>
-              <Pie
-                data={expensesByCategory}
-                cx="50%"
-                cy="50%"
-                labelLine={false}
-                label={({ category, percent }) => `${category}: ${(percent * 100).toFixed(0)}%`}
-                outerRadius={100}
-                fill="#8884d8"
-                dataKey="total"
-              >
-                {expensesByCategory.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                ))}
-              </Pie>
-              <Tooltip 
-                contentStyle={{ 
-                  backgroundColor: '#1e293b', 
-                  border: 'none',
-                  borderRadius: '8px',
-                  color: '#fff'
-                }} 
-              />
-            </PieChart>
-          </ResponsiveContainer>
+          {hasExpenseData ? (
+            <ResponsiveContainer width="100%" height={300}>
+              <PieChart>
+                <Pie
+                  data={expensesChartData}
+                  cx="50%"
+                  cy="50%"
+                  labelLine={false}
+                  label={({ categoryLabel, percent }) => `${categoryLabel}: ${(percent * 100).toFixed(0)}%`}
+                  outerRadius={100}
+                  fill="#8884d8"
+                  dataKey="total"
+                >
+                  {expensesChartData.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                  ))}
+                </Pie>
+                <Tooltip 
+                  contentStyle={{ 
+                    backgroundColor: '#1e293b', 
+                    border: 'none',
+                    borderRadius: '8px',
+                    color: '#fff'
+                  }} 
+                />
+              </PieChart>
+            </ResponsiveContainer>
+          ) : (
+            <div className="flex h-[300px] items-center justify-center rounded-xl border border-dashed border-gray-300 dark:border-navy-700 text-sm text-gray-500 dark:text-gray-400">
+              No expense categories yet. Add expenses to populate this chart.
+            </div>
+          )}
         </Card>
       </div>
 

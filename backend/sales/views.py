@@ -103,7 +103,15 @@ class SaleViewSet(viewsets.ModelViewSet):
             total_revenue=Sum('total_amount')
         ).order_by('-total_revenue')[:limit]
         
-        return Response(list(sales))
+        return Response([
+            {
+                'product_id': item['product__id'],
+                'product_name': item['product__name'],
+                'total_quantity': item['total_quantity'],
+                'total_revenue': float(item['total_revenue'] or 0),
+            }
+            for item in sales
+        ])
 
     @action(detail=False, methods=['get'])
     def recent(self, request):

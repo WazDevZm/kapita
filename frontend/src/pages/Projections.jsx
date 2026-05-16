@@ -9,6 +9,23 @@ export default function Projections() {
   const [loading, setLoading] = useState(true)
   const [projections, setProjections] = useState(null)
   const [timeframe, setTimeframe] = useState('30') // 30, 60, 90 days or monthly
+  const formatChartDay = (value) => {
+    if (!value) return 'No date'
+
+    const rawValue = String(value)
+    if (/^\d{4}-\d{2}-\d{2}$/.test(rawValue)) {
+      const [year, month, day] = rawValue.split('-')
+      const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+      return `${monthNames[Number(month) - 1]} ${Number(day)}`
+    }
+
+    const parsedDate = new Date(rawValue)
+    if (!Number.isNaN(parsedDate.getTime())) {
+      return new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric' }).format(parsedDate)
+    }
+
+    return rawValue
+  }
 
   useEffect(() => {
     fetchProjections()
@@ -28,6 +45,14 @@ export default function Projections() {
   if (loading) return <Loading fullScreen />
 
   const { current_metrics, averages, projections_30_days, daily_trend, insights } = projections || {}
+  const chartData = Array.isArray(daily_trend)
+    ? daily_trend.map((item) => ({
+        ...item,
+        dayLabel: formatChartDay(item?.day),
+        total: Number(item?.total || 0),
+      }))
+    : []
+  const hasTrendData = chartData.length > 0
 
   // Calculate monthly projections
   const monthlyProjections = timeframe === 'monthly' ? {
@@ -223,29 +248,35 @@ export default function Projections() {
         <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
           Sales Trend (Last 30 Days)
         </h3>
-        <ResponsiveContainer width="100%" height={300}>
-          <LineChart data={daily_trend}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
-            <XAxis dataKey="day" stroke="#9ca3af" />
-            <YAxis stroke="#9ca3af" />
-            <Tooltip 
-              contentStyle={{ 
-                backgroundColor: '#1e293b', 
-                border: 'none',
-                borderRadius: '8px',
-                color: '#fff'
-              }} 
-            />
-            <Legend />
-            <Line 
-              type="monotone" 
-              dataKey="total" 
-              stroke="#10b981" 
-              strokeWidth={2}
-              name="Daily Sales"
-            />
-          </LineChart>
-        </ResponsiveContainer>
+        {hasTrendData ? (
+          <ResponsiveContainer width="100%" height={300}>
+            <LineChart data={chartData}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+              <XAxis dataKey="dayLabel" stroke="#9ca3af" />
+              <YAxis stroke="#9ca3af" />
+              <Tooltip 
+                contentStyle={{ 
+                  backgroundColor: '#1e293b', 
+                  border: 'none',
+                  borderRadius: '8px',
+                  color: '#fff'
+                }} 
+              />
+              <Legend />
+              <Line 
+                type="monotone" 
+                dataKey="total" 
+                stroke="#10b981" 
+                strokeWidth={2}
+                name="Daily Sales"
+              />
+            </LineChart>
+          </ResponsiveContainer>
+        ) : (
+          <div className="flex h-[300px] items-center justify-center rounded-xl border border-dashed border-gray-300 dark:border-navy-700 text-sm text-gray-500 dark:text-gray-400">
+            No sales trend data yet. Create sales to populate this chart.
+          </div>
+        )}
       </Card>
 
       {/* Recommendations */}
