@@ -2,12 +2,14 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from django.db.models import Sum, Count
+from django.db.models.functions import TruncDate
 from datetime import datetime, timedelta
 
 from products.models import Product
 from sales.models import Sale
 from expenses.models import Expense
 from credits.models import Credit
+from customers.models import Customer
 from reinvestments.models import Reinvestment
 
 
@@ -329,9 +331,7 @@ class ProjectionsView(APIView):
         daily_sales = Sale.objects.filter(
             user=user,
             created_at__gte=thirty_days_ago
-        ).extra(
-            select={'day': 'date(created_at)'}
-        ).values('day').annotate(
+        ).annotate(day=TruncDate('created_at')).values('day').annotate(
             total=Sum('total_amount'),
             count=Count('id')
         ).order_by('day')

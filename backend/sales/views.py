@@ -5,6 +5,7 @@ from rest_framework.permissions import IsAuthenticated
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.filters import SearchFilter, OrderingFilter
 from django.db.models import Sum, Count, Q
+from django.db.models.functions import TruncDate
 from datetime import datetime, timedelta
 
 from .models import Sale
@@ -82,9 +83,7 @@ class SaleViewSet(viewsets.ModelViewSet):
             user=request.user,
             created_at__gte=start_date,
             created_at__lte=end_date
-        ).extra(
-            select={'day': 'date(created_at)'}
-        ).values('day').annotate(
+        ).annotate(day=TruncDate('created_at')).values('day').annotate(
             total=Sum('total_amount'),
             count=Count('id')
         ).order_by('day')

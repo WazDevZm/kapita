@@ -59,6 +59,7 @@ api.interceptors.response.use(
 export const authAPI = {
   register: (data) => api.post('/auth/register/', data),
   login: (data) => api.post('/auth/login/', data),
+  refreshToken: (refresh) => axios.post(`${API_URL}/auth/token/refresh/`, { refresh }),
   getProfile: () => api.get('/auth/me/'),
   updateProfile: (data) => api.put('/auth/profile/', data),
   changePassword: (data) => api.post('/auth/change-password/', data),

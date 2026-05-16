@@ -5,6 +5,7 @@ export const useAuthStore = create((set) => ({
   user: null,
   isAuthenticated: !!localStorage.getItem('access_token'),
   loading: false,
+  sessionLoading: false,
   error: null,
 
   login: async (credentials) => {
@@ -52,7 +53,40 @@ export const useAuthStore = create((set) => ({
   logout: () => {
     localStorage.removeItem('access_token')
     localStorage.removeItem('refresh_token')
-    set({ user: null, isAuthenticated: false })
+    set({ user: null, isAuthenticated: false, sessionLoading: false })
+  },
+
+  hydrateSession: async () => {
+    const token = localStorage.getItem('access_token')
+
+    if (!token) {
+      set({ user: null, isAuthenticated: false, sessionLoading: false })
+      return
+    }
+
+    set({ isAuthenticated: true, sessionLoading: true })
+
+    try {
+      const response = await authAPI.getProfile()
+      set({ user: response.data, isAuthenticated: true, sessionLoading: false })
+    } catch (error) {
+      const refreshToken = localStorage.getItem('refresh_token')
+
+      try {
+        if (!refreshToken) throw error
+
+        const refreshResponse = await authAPI.refreshToken(refreshToken)
+        const { access } = refreshResponse.data
+        localStorage.setItem('access_token', access)
+
+        const profileResponse = await authAPI.getProfile()
+        set({ user: profileResponse.data, isAuthenticated: true, sessionLoading: false })
+      } catch (_) {
+        localStorage.removeItem('access_token')
+        localStorage.removeItem('refresh_token')
+        set({ user: null, isAuthenticated: false, sessionLoading: false })
+      }
+    }
   },
 
   fetchUser: async () => {

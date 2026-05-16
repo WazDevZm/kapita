@@ -174,10 +174,10 @@ Password: Test@12345
 
 ### Backend (Railway/Render)
 
-1. Create PostgreSQL database
-2. Set environment variables
-3. Deploy from GitHub
-4. Run migrations
+1. Add a persistent disk in Render and mount it at `/var/data` so the SQLite database survives deploys.
+2. Set `RENDER=true`, `DEBUG=false`, `ALLOWED_HOSTS`, `CORS_ALLOWED_ORIGINS`, and `CSRF_TRUSTED_ORIGINS` in Render.
+3. Deploy from GitHub.
+4. Let the release command run `python manage.py migrate --run-syncdb --noinput`.
 
 ### Frontend (Vercel)
 

@@ -158,14 +158,16 @@ Password: Test@12345
 
 ### Railway/Render
 
-1. Create a PostgreSQL database in Render
-2. Set environment variables
-3. Deploy from GitHub
+1. Add a persistent disk and mount it at `/var/data` for the SQLite database.
+2. Set `RENDER=true`, `DEBUG=false`, `ALLOWED_HOSTS`, `CORS_ALLOWED_ORIGINS`, and `CSRF_TRUSTED_ORIGINS`.
+3. Deploy from GitHub.
 4. Run migrations:
    ```bash
    python manage.py migrate
    python manage.py createsuperuser
    ```
+
+The Render release command is configured to run `python manage.py migrate --run-syncdb --noinput` so the app tables are created even without migration files.
 
 ### Environment Variables for Production
 

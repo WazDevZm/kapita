@@ -5,6 +5,7 @@ from rest_framework.permissions import IsAuthenticated
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.filters import SearchFilter, OrderingFilter
 from django.db.models import Sum, Count
+from django.db.models.functions import TruncMonth
 from datetime import datetime, timedelta
 
 from .models import Expense
@@ -80,9 +81,7 @@ class ExpenseViewSet(viewsets.ModelViewSet):
             user=request.user,
             date__gte=start_date,
             date__lte=end_date
-        ).extra(
-            select={'month': "to_char(date, 'YYYY-MM')"}
-        ).values('month').annotate(
+        ).annotate(month=TruncMonth('date')).values('month').annotate(
             total=Sum('amount'),
             count=Count('id')
         ).order_by('month')

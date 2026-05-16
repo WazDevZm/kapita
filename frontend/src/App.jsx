@@ -1,6 +1,8 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
+import { useEffect } from 'react'
 import { useAuthStore } from './store/authStore'
 import Layout from './components/Layout'
+import Loading from './components/Loading'
 import Landing from './pages/Landing'
 import Login from './pages/auth/Login'
 import Register from './pages/auth/Register'
@@ -19,7 +21,15 @@ import Chat from './pages/Chat'
 import NotFound from './pages/NotFound'
 
 function App() {
-  const { isAuthenticated } = useAuthStore()
+  const { isAuthenticated, hydrateSession, sessionLoading } = useAuthStore()
+
+  useEffect(() => {
+    hydrateSession()
+  }, [hydrateSession])
+
+  if (sessionLoading) {
+    return <Loading fullScreen />
+  }
 
   return (
     <Router>

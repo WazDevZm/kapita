@@ -14,8 +14,13 @@ SECRET_KEY = config('SECRET_KEY', default='django-insecure-change-this-in-produc
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = config('DEBUG', default=True, cast=bool)
+RENDER = config('RENDER', default=False, cast=bool)
 
-ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='localhost,127.0.0.1').split(',')
+default_allowed_hosts = 'localhost,127.0.0.1'
+if RENDER:
+    default_allowed_hosts = f"{default_allowed_hosts},*.onrender.com"
+
+ALLOWED_HOSTS = config('ALLOWED_HOSTS', default=default_allowed_hosts).split(',')
 
 # Application definition
 INSTALLED_APPS = [
@@ -81,10 +86,11 @@ WSGI_APPLICATION = 'kapita.wsgi.application'
 DB_ENGINE = config('DB_ENGINE', default='sqlite3')
 
 if DB_ENGINE == 'sqlite3':
+    default_sqlite_path = '/var/data/db.sqlite3' if RENDER else str(BASE_DIR / 'db.sqlite3')
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': BASE_DIR / 'db.sqlite3',
+            'NAME': config('SQLITE_PATH', default=default_sqlite_path),
         }
     }
 else:
@@ -129,6 +135,10 @@ STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 MEDIA_URL = 'media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
+if not DEBUG:
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+    USE_X_FORWARDED_HOST = True
+
 # Default primary key field type
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
@@ -171,6 +181,11 @@ SIMPLE_JWT = {
 # CORS Settings
 CORS_ALLOWED_ORIGINS = config(
     'CORS_ALLOWED_ORIGINS',
+    default='http://localhost:3000,http://localhost:5173'
+).split(',')
+
+CSRF_TRUSTED_ORIGINS = config(
+    'CSRF_TRUSTED_ORIGINS',
     default='http://localhost:3000,http://localhost:5173'
 ).split(',')
 

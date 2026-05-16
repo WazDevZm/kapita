@@ -15,7 +15,7 @@ class ProductViewSet(viewsets.ModelViewSet):
     serializer_class = ProductSerializer
     permission_classes = [IsAuthenticated]
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
-    filterset_fields = ['category', 'is_low_stock']
+    filterset_fields = ['category']
     search_fields = ['name', 'sku', 'category', 'supplier']
     ordering_fields = ['name', 'quantity', 'selling_price', 'created_at']
     ordering = ['-created_at']
