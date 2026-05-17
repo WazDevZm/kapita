@@ -6,7 +6,8 @@ from .views import (
     ReportsView,
     ProjectionsView,
     MonthlyAnalyticsView,
-    ComprehensiveReportView
+    ComprehensiveReportView,
+    SeedDemoDataView,
 )
 
 urlpatterns = [
@@ -17,4 +18,5 @@ urlpatterns = [
     path('projections/', ProjectionsView.as_view(), name='projections'),
     path('monthly/', MonthlyAnalyticsView.as_view(), name='monthly'),
     path('comprehensive-report/', ComprehensiveReportView.as_view(), name='comprehensive_report'),
+    path('seed-demo/', SeedDemoDataView.as_view(), name='seed_demo'),
 ]

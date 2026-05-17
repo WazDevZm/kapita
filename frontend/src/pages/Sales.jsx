@@ -23,6 +23,40 @@ export default function Sales() {
     notes: '',
   })
 
+  const buildSalePayload = () => ({
+    product: Number(formData.product),
+    customer: formData.customer ? Number(formData.customer) : null,
+    quantity: Number(formData.quantity),
+    unit_price: Number(formData.unit_price),
+    payment_type: formData.payment_type,
+    deposit_amount: formData.payment_type === 'credit' ? Number(formData.deposit_amount || 0) : 0,
+    due_date: formData.payment_type === 'credit' && formData.due_date ? formData.due_date : null,
+    notes: formData.notes?.trim() || '',
+  })
+
+  const getErrorMessage = (error) => {
+    const data = error.response?.data
+
+    if (!data) return 'Failed to create sale'
+    if (typeof data.detail === 'string') return data.detail
+
+    const fieldMessages = Object.entries(data)
+      .map(([key, value]) => {
+        if (Array.isArray(value)) {
+          return `${key}: ${value.join(', ')}`
+        }
+
+        if (typeof value === 'string') {
+          return `${key}: ${value}`
+        }
+
+        return null
+      })
+      .filter(Boolean)
+
+    return fieldMessages.length > 0 ? fieldMessages.join(' | ') : 'Failed to create sale'
+  }
+
   useEffect(() => {
     fetchData()
   }, [])
@@ -47,13 +81,13 @@ export default function Sales() {
   const handleSubmit = async (e) => {
     e.preventDefault()
     try {
-      await salesAPI.create(formData)
+      await salesAPI.create(buildSalePayload())
       setShowModal(false)
       resetForm()
       fetchData()
     } catch (error) {
       console.error('Failed to create sale:', error)
-      alert(error.response?.data?.detail || 'Failed to create sale')
+      alert(getErrorMessage(error))
     }
   }
 

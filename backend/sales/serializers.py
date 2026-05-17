@@ -1,11 +1,36 @@
 from rest_framework import serializers
+from customers.models import Customer
+from products.models import Product
 from .models import Sale
 from products.serializers import ProductSerializer
 from customers.serializers import CustomerSerializer
 
 
+class BlankablePrimaryKeyRelatedField(serializers.PrimaryKeyRelatedField):
+    def to_internal_value(self, data):
+        if data in ('', None):
+            return None
+
+        return super().to_internal_value(data)
+
+
+class BlankableDateField(serializers.DateField):
+    def to_internal_value(self, value):
+        if value in ('', None):
+            return None
+
+        return super().to_internal_value(value)
+
+
 class SaleSerializer(serializers.ModelSerializer):
     """Serializer for Sale model"""
+    product = serializers.PrimaryKeyRelatedField(queryset=Product.objects.all())
+    customer = BlankablePrimaryKeyRelatedField(
+        queryset=Customer.objects.all(),
+        required=False,
+        allow_null=True,
+    )
+    due_date = BlankableDateField(required=False, allow_null=True)
     product_details = ProductSerializer(source='product', read_only=True)
     customer_details = CustomerSerializer(source='customer', read_only=True)
     cost_of_goods = serializers.ReadOnlyField()
@@ -46,6 +71,19 @@ class SaleSerializer(serializers.ModelSerializer):
                 )
         
         return data
+
+    def to_internal_value(self, data):
+        if hasattr(data, 'copy'):
+            data = data.copy()
+        else:
+            data = dict(data)
+
+        if data.get('customer') == '':
+            data['customer'] = None
+        if data.get('due_date') == '':
+            data['due_date'] = None
+
+        return super().to_internal_value(data)
 
     def create(self, validated_data):
         validated_data['user'] = self.context['request'].user

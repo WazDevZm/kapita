@@ -3,15 +3,27 @@ import { FileText, Download, Calendar } from 'lucide-react'
 import Card from '../components/Card'
 import Loading from '../components/Loading'
 import { analyticsAPI } from '../services/api'
-import jsPDF from 'jspdf'
-import 'jspdf-autotable'
+import { jsPDF } from 'jspdf'
+import autoTable from 'jspdf-autotable'
 
 export default function Reports() {
   const [loading, setLoading] = useState(false)
   const [reportType, setReportType] = useState('monthly')
   const [reportData, setReportData] = useState(null)
+  const [error, setError] = useState('')
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1)
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear())
+
+  const formatMoney = (value) => Number(value || 0).toLocaleString()
+  const formatDate = (value) => {
+    if (!value) return 'N/A'
+    const parsed = new Date(value)
+    return Number.isNaN(parsed.getTime()) ? String(value) : parsed.toLocaleDateString()
+  }
+  const buildFileName = (label, extension) => {
+    const safeLabel = String(label || 'report').replace(/[^a-z0-9]+/gi, '_').replace(/^_+|_+$/g, '')
+    return `Kapita_Report_${safeLabel}.${extension}`
+  }
 
   const months = [
     { value: 1, label: 'January' },
@@ -30,6 +42,7 @@ export default function Reports() {
 
   const generateReport = async () => {
     setLoading(true)
+    setError('')
     try {
       const params = { type: reportType }
       
@@ -41,10 +54,36 @@ export default function Reports() {
       }
       
       const response = await analyticsAPI.getComprehensiveReport(params)
-      setReportData(response.data)
+      // Normalize comprehensive report payload into shape the UI expects
+      const d = response.data || {}
+      let normalized = d
+      if (d.report_info) {
+        normalized = {
+          // keep original comprehensive fields
+          report_info: d.report_info,
+          executive_summary: d.executive_summary || {},
+          sales_analysis: d.sales_analysis || { top_products: [], by_payment_type: {}, daily_average: 0 },
+          expense_analysis: d.expense_analysis || { by_category: {}, largest_expenses: [] },
+          credit_analysis: d.credit_analysis || {},
+          inventory_analysis: d.inventory_analysis || {},
+          customer_analysis: d.customer_analysis || {},
+          recommendations: d.recommendations || [],
+          // also expose convenience aliases used by the existing UI
+          report_type: d.report_info.type || reportType,
+          period: d.report_info.period || { start: d.report_info.start, end: d.report_info.end },
+          sales: d.executive_summary || {},
+          expenses: d.expense_analysis || {},
+          credits: d.credit_analysis || {},
+          net_profit: d.executive_summary?.net_profit ?? d.net_profit ?? 0,
+        }
+      }
+
+      setReportData(normalized)
     } catch (error) {
       console.error('Failed to generate report:', error)
-      alert('Failed to generate report')
+      const message = error.response?.data?.detail || 'Failed to generate report'
+      setError(message)
+      alert(message)
     } finally {
       setLoading(false)
     }
@@ -53,8 +92,20 @@ export default function Reports() {
   const exportToPDF = () => {
     if (!reportData) return
 
-    const doc = new jsPDF()
-    const { report_info, executive_summary, sales_analysis, expense_analysis, credit_analysis, inventory_analysis, customer_analysis, recommendations } = reportData
+    const doc = new jsPDF({ unit: 'mm', format: 'a4' })
+    const {
+      report_info,
+      executive_summary,
+      sales_analysis,
+      expense_analysis,
+      credit_analysis,
+      inventory_analysis,
+      customer_analysis,
+      recommendations,
+    } = reportData
+    const paymentRows = Object.entries(sales_analysis?.by_payment_type || {})
+    const expenseRows = Object.entries(expense_analysis?.by_category || {})
+    const recommendationsList = Array.isArray(recommendations) ? recommendations : []
 
     // Title Page
     doc.setFontSize(24)
@@ -66,9 +117,9 @@ export default function Reports() {
     
     doc.setFontSize(12)
     doc.setFont(undefined, 'normal')
-    doc.text(report_info.business_name, 105, 60, { align: 'center' })
-    doc.text(report_info.period.label, 105, 70, { align: 'center' })
-    doc.text(`Generated: ${new Date(report_info.generated_at).toLocaleDateString()}`, 105, 80, { align: 'center' })
+    doc.text(report_info?.business_name || 'Your Business', 105, 60, { align: 'center' })
+    doc.text(report_info?.period?.label || 'Report Period', 105, 70, { align: 'center' })
+    doc.text(`Generated: ${formatDate(report_info?.generated_at)}`, 105, 80, { align: 'center' })
 
     // Executive Summary
     doc.addPage()
@@ -76,16 +127,16 @@ export default function Reports() {
     doc.setFont(undefined, 'bold')
     doc.text('Executive Summary', 14, 20)
     
-    doc.autoTable({
+    autoTable(doc, {
       startY: 30,
       head: [['Metric', 'Value']],
       body: [
-        ['Total Sales', `${report_info.currency} ${executive_summary.total_sales.toLocaleString()}`],
-        ['Total Profit', `${report_info.currency} ${executive_summary.total_profit.toLocaleString()}`],
-        ['Total Expenses', `${report_info.currency} ${executive_summary.total_expenses.toLocaleString()}`],
-        ['Net Profit', `${report_info.currency} ${executive_summary.net_profit.toLocaleString()}`],
-        ['Profit Margin', `${executive_summary.profit_margin.toFixed(2)}%`],
-        ['Transactions', executive_summary.transaction_count],
+        ['Total Sales', `${report_info?.currency || 'ZMW'} ${formatMoney(executive_summary?.total_sales)}`],
+        ['Total Profit', `${report_info?.currency || 'ZMW'} ${formatMoney(executive_summary?.total_profit)}`],
+        ['Total Expenses', `${report_info?.currency || 'ZMW'} ${formatMoney(executive_summary?.total_expenses)}`],
+        ['Net Profit', `${report_info?.currency || 'ZMW'} ${formatMoney(executive_summary?.net_profit)}`],
+        ['Profit Margin', `${Number(executive_summary?.profit_margin || 0).toFixed(2)}%`],
+        ['Transactions', executive_summary?.transaction_count || 0],
       ],
       theme: 'grid',
       headStyles: { fillColor: [16, 185, 129] },
@@ -99,29 +150,29 @@ export default function Reports() {
     
     doc.setFontSize(12)
     doc.setFont(undefined, 'normal')
-    doc.text(`Total Sales: ${report_info.currency} ${sales_analysis.total_sales.toLocaleString()}`, 14, 35)
-    doc.text(`Daily Average: ${report_info.currency} ${sales_analysis.daily_average.toLocaleString()}`, 14, 45)
+    doc.text(`Total Sales: ${report_info?.currency || 'ZMW'} ${formatMoney(sales_analysis?.total_sales)}`, 14, 35)
+    doc.text(`Daily Average: ${report_info?.currency || 'ZMW'} ${formatMoney(sales_analysis?.daily_average)}`, 14, 45)
     
-    doc.autoTable({
+    autoTable(doc, {
       startY: 55,
       head: [['Payment Type', 'Amount']],
-      body: Object.entries(sales_analysis.by_payment_type).map(([type, amount]) => [
+      body: paymentRows.map(([type, amount]) => [
         type.replace('_', ' ').toUpperCase(),
-        `${report_info.currency} ${amount.toLocaleString()}`
+        `${report_info?.currency || 'ZMW'} ${formatMoney(amount)}`
       ]),
       theme: 'grid',
       headStyles: { fillColor: [16, 185, 129] },
     })
 
     // Top Products
-    if (sales_analysis.top_products.length > 0) {
-      doc.autoTable({
+    if ((sales_analysis?.top_products || []).length > 0) {
+      autoTable(doc, {
         startY: doc.lastAutoTable.finalY + 15,
         head: [['Top Products', 'Quantity', 'Revenue']],
-        body: sales_analysis.top_products.map(p => [
-          p.name,
-          p.quantity,
-          `${report_info.currency} ${p.revenue.toLocaleString()}`
+        body: sales_analysis.top_products.map((p) => [
+          p.name || 'Unknown',
+          p.quantity || 0,
+          `${report_info?.currency || 'ZMW'} ${formatMoney(p.revenue)}`
         ]),
         theme: 'grid',
         headStyles: { fillColor: [16, 185, 129] },
@@ -136,31 +187,31 @@ export default function Reports() {
     
     doc.setFontSize(12)
     doc.setFont(undefined, 'normal')
-    doc.text(`Total Expenses: ${report_info.currency} ${expense_analysis.total_expenses.toLocaleString()}`, 14, 35)
+    doc.text(`Total Expenses: ${report_info?.currency || 'ZMW'} ${formatMoney(expense_analysis?.total_expenses)}`, 14, 35)
     
-    doc.autoTable({
+    autoTable(doc, {
       startY: 45,
       head: [['Category', 'Amount']],
-      body: Object.entries(expense_analysis.by_category)
+      body: expenseRows
         .filter(([_, amount]) => amount > 0)
         .map(([category, amount]) => [
           category.replace('_', ' ').toUpperCase(),
-          `${report_info.currency} ${amount.toLocaleString()}`
+          `${report_info?.currency || 'ZMW'} ${formatMoney(amount)}`
         ]),
       theme: 'grid',
       headStyles: { fillColor: [239, 68, 68] },
     })
 
     // Largest Expenses
-    if (expense_analysis.largest_expenses.length > 0) {
-      doc.autoTable({
+    if ((expense_analysis?.largest_expenses || []).length > 0) {
+      autoTable(doc, {
         startY: doc.lastAutoTable.finalY + 15,
         head: [['Largest Expenses', 'Category', 'Amount', 'Date']],
-        body: expense_analysis.largest_expenses.slice(0, 10).map(e => [
-          e.title,
-          e.category,
-          `${report_info.currency} ${e.amount.toLocaleString()}`,
-          new Date(e.date).toLocaleDateString()
+        body: expense_analysis.largest_expenses.slice(0, 10).map((e) => [
+          e.title || 'Expense',
+          e.category || 'N/A',
+          `${report_info?.currency || 'ZMW'} ${formatMoney(e.amount)}`,
+          formatDate(e.date)
         ]),
         theme: 'grid',
         headStyles: { fillColor: [239, 68, 68] },
@@ -173,29 +224,29 @@ export default function Reports() {
     doc.setFont(undefined, 'bold')
     doc.text('Credit Analysis', 14, 20)
     
-    doc.autoTable({
+    autoTable(doc, {
       startY: 30,
       head: [['Metric', 'Value']],
       body: [
-        ['Total Credit Issued', `${report_info.currency} ${credit_analysis.total_issued.toLocaleString()}`],
-        ['Total Collected', `${report_info.currency} ${credit_analysis.total_collected.toLocaleString()}`],
-        ['Outstanding', `${report_info.currency} ${credit_analysis.outstanding.toLocaleString()}`],
-        ['Collection Rate', `${credit_analysis.collection_rate.toFixed(2)}%`],
+        ['Total Credit Issued', `${report_info?.currency || 'ZMW'} ${formatMoney(credit_analysis?.total_issued)}`],
+        ['Total Collected', `${report_info?.currency || 'ZMW'} ${formatMoney(credit_analysis?.total_collected)}`],
+        ['Outstanding', `${report_info?.currency || 'ZMW'} ${formatMoney(credit_analysis?.outstanding)}`],
+        ['Collection Rate', `${Number(credit_analysis?.collection_rate || 0).toFixed(2)}%`],
       ],
       theme: 'grid',
       headStyles: { fillColor: [251, 191, 36] },
     })
 
     // Top Debtors
-    if (credit_analysis.top_debtors.length > 0) {
-      doc.autoTable({
+    if ((credit_analysis?.top_debtors || []).length > 0) {
+      autoTable(doc, {
         startY: doc.lastAutoTable.finalY + 15,
         head: [['Top Debtors', 'Amount Owed', 'Status', 'Due Date']],
-        body: credit_analysis.top_debtors.map(d => [
-          d.customer,
-          `${report_info.currency} ${d.amount_owed.toLocaleString()}`,
-          d.status.toUpperCase(),
-          d.due_date ? new Date(d.due_date).toLocaleDateString() : 'N/A'
+        body: credit_analysis.top_debtors.map((d) => [
+          d.customer || 'N/A',
+          `${report_info?.currency || 'ZMW'} ${formatMoney(d.amount_owed)}`,
+          String(d.status || 'unknown').toUpperCase(),
+          d.due_date ? formatDate(d.due_date) : 'N/A'
         ]),
         theme: 'grid',
         headStyles: { fillColor: [251, 191, 36] },
@@ -208,27 +259,27 @@ export default function Reports() {
     doc.setFont(undefined, 'bold')
     doc.text('Inventory Analysis', 14, 20)
     
-    doc.autoTable({
+    autoTable(doc, {
       startY: 30,
       head: [['Metric', 'Value']],
       body: [
-        ['Total Products', inventory_analysis.total_products],
-        ['Inventory Value', `${report_info.currency} ${inventory_analysis.inventory_value.toLocaleString()}`],
-        ['Low Stock Items', inventory_analysis.low_stock_count],
+        ['Total Products', inventory_analysis?.total_products || 0],
+        ['Inventory Value', `${report_info?.currency || 'ZMW'} ${formatMoney(inventory_analysis?.inventory_value)}`],
+        ['Low Stock Items', inventory_analysis?.low_stock_count || 0],
       ],
       theme: 'grid',
       headStyles: { fillColor: [59, 130, 246] },
     })
 
     // Low Stock Products
-    if (inventory_analysis.low_stock_products.length > 0) {
-      doc.autoTable({
+    if ((inventory_analysis?.low_stock_products || []).length > 0) {
+      autoTable(doc, {
         startY: doc.lastAutoTable.finalY + 15,
         head: [['Low Stock Products', 'Current', 'Minimum']],
-        body: inventory_analysis.low_stock_products.map(p => [
-          p.name,
-          p.quantity,
-          p.minimum_stock
+        body: inventory_analysis.low_stock_products.map((p) => [
+          p.name || 'Product',
+          p.quantity || 0,
+          p.minimum_stock || 0
         ]),
         theme: 'grid',
         headStyles: { fillColor: [239, 68, 68] },
@@ -243,16 +294,16 @@ export default function Reports() {
     
     doc.setFontSize(12)
     doc.setFont(undefined, 'normal')
-    doc.text(`Total Customers: ${customer_analysis.total_customers}`, 14, 35)
+    doc.text(`Total Customers: ${customer_analysis?.total_customers || 0}`, 14, 35)
     
-    if (customer_analysis.top_customers.length > 0) {
-      doc.autoTable({
+    if ((customer_analysis?.top_customers || []).length > 0) {
+      autoTable(doc, {
         startY: 45,
         head: [['Top Customers', 'Total Purchases', 'Transactions']],
-        body: customer_analysis.top_customers.map(c => [
-          c.name,
-          `${report_info.currency} ${c.total_purchases.toLocaleString()}`,
-          c.transaction_count
+        body: customer_analysis.top_customers.map((c) => [
+          c.name || 'Customer',
+          `${report_info?.currency || 'ZMW'} ${formatMoney(c.total_purchases)}`,
+          c.transaction_count || 0
         ]),
         theme: 'grid',
         headStyles: { fillColor: [139, 92, 246] },
@@ -260,19 +311,19 @@ export default function Reports() {
     }
 
     // Recommendations
-    if (recommendations.length > 0) {
+    if (recommendationsList.length > 0) {
       doc.addPage()
       doc.setFontSize(16)
       doc.setFont(undefined, 'bold')
       doc.text('Recommendations', 14, 20)
       
       let yPos = 35
-      recommendations.forEach((rec, index) => {
+      recommendationsList.forEach((rec, index) => {
         doc.setFontSize(12)
         doc.setFont(undefined, 'bold')
-        doc.text(`${index + 1}. ${rec.title}`, 14, yPos)
+        doc.text(`${index + 1}. ${rec.title || 'Recommendation'}`, 14, yPos)
         doc.setFont(undefined, 'normal')
-        doc.text(rec.message, 14, yPos + 7, { maxWidth: 180 })
+        doc.text(rec.message || '', 14, yPos + 7, { maxWidth: 180 })
         yPos += 20
         
         if (yPos > 270) {
@@ -283,7 +334,7 @@ export default function Reports() {
     }
 
     // Save PDF
-    const filename = `Kapita_Report_${report_info.period.label.replace(/ /g, '_')}.pdf`
+    const filename = buildFileName(report_info?.period?.label || 'report', 'pdf')
     doc.save(filename)
   }
 
@@ -323,7 +374,7 @@ export default function Reports() {
     const url = window.URL.createObjectURL(blob)
     const a = document.createElement('a')
     a.href = url
-    a.download = `Kapita_Report_${report_info.period.label.replace(/ /g, '_')}.csv`
+    a.download = buildFileName(report_info?.period?.label || 'report', 'csv')
     a.click()
   }
 
@@ -340,6 +391,12 @@ export default function Reports() {
         <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
           Generate Report
         </h3>
+
+        {error && (
+          <div className="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-900/50 dark:bg-red-900/20 dark:text-red-200">
+            {error}
+          </div>
+        )}
         
         <div className="space-y-4">
           <div>

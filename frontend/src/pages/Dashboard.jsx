@@ -6,7 +6,9 @@ import {
   Package, 
   CreditCard, 
   AlertTriangle,
-  ShoppingCart
+  ShoppingCart,
+  Database,
+  Loader2,
 } from 'lucide-react'
 import { StatCard } from '../components/Card'
 import Card from '../components/Card'
@@ -16,6 +18,7 @@ import { LineChart, Line, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tool
 
 export default function Dashboard() {
   const [loading, setLoading] = useState(true)
+  const [demoLoading, setDemoLoading] = useState(false)
   const [dashboardData, setDashboardData] = useState(null)
   const [dailySales, setDailySales] = useState([])
   const [expensesByCategory, setExpensesByCategory] = useState([])
@@ -25,6 +28,7 @@ export default function Dashboard() {
   }, [])
 
   const fetchDashboardData = async () => {
+    setLoading(true)
     try {
       const [dashboardRes, salesRes, expensesRes] = await Promise.all([
         analyticsAPI.getDashboard(),
@@ -42,9 +46,24 @@ export default function Dashboard() {
     }
   }
 
+  const loadDemoData = async () => {
+    setDemoLoading(true)
+    try {
+      const response = await analyticsAPI.seedDemoData()
+      await fetchDashboardData()
+      alert(`${response.data.message}. Total records: ${response.data.counts?.total || 0}`)
+    } catch (error) {
+      console.error('Failed to seed demo data:', error)
+      alert(error.response?.data?.detail || 'Failed to load demo data')
+    } finally {
+      setDemoLoading(false)
+    }
+  }
+
   if (loading) return <Loading fullScreen />
 
   const { summary, recent_activity, alerts } = dashboardData || {}
+  const recordCounts = summary?.record_counts || {}
 
   const nonAiSuggestions = [
     {
@@ -103,9 +122,19 @@ export default function Dashboard() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div>
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Dashboard</h1>
-        <p className="text-gray-600 dark:text-gray-400">Overview of your business performance</p>
+      <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Dashboard</h1>
+          <p className="text-gray-600 dark:text-gray-400">Overview of your business performance</p>
+        </div>
+        <button
+          onClick={loadDemoData}
+          disabled={demoLoading}
+          className="btn btn-secondary inline-flex items-center gap-2 self-start md:self-auto"
+        >
+          {demoLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Database className="w-4 h-4" />}
+          <span>{demoLoading ? 'Loading demo data...' : 'Load demo data'}</span>
+        </button>
       </div>
 
       {/* Alerts */}
@@ -158,6 +187,46 @@ export default function Dashboard() {
           color="primary"
         />
       </div>
+
+      <Card>
+        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+          <div>
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Demo record count</h3>
+            <p className="text-sm text-gray-500 dark:text-gray-400">
+              This shows how much business data is currently powering the dashboard.
+            </p>
+          </div>
+          <div className="text-3xl font-bold text-primary-600 dark:text-primary-400">
+            {recordCounts.total || 0}
+          </div>
+        </div>
+        <div className="mt-4 grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-6">
+          <div className="rounded-xl bg-gray-50 dark:bg-navy-800 p-3">
+            <p className="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">Sales</p>
+            <p className="mt-1 text-lg font-semibold text-gray-900 dark:text-white">{recordCounts.sales || 0}</p>
+          </div>
+          <div className="rounded-xl bg-gray-50 dark:bg-navy-800 p-3">
+            <p className="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">Products</p>
+            <p className="mt-1 text-lg font-semibold text-gray-900 dark:text-white">{recordCounts.products || 0}</p>
+          </div>
+          <div className="rounded-xl bg-gray-50 dark:bg-navy-800 p-3">
+            <p className="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">Customers</p>
+            <p className="mt-1 text-lg font-semibold text-gray-900 dark:text-white">{recordCounts.customers || 0}</p>
+          </div>
+          <div className="rounded-xl bg-gray-50 dark:bg-navy-800 p-3">
+            <p className="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">Expenses</p>
+            <p className="mt-1 text-lg font-semibold text-gray-900 dark:text-white">{recordCounts.expenses || 0}</p>
+          </div>
+          <div className="rounded-xl bg-gray-50 dark:bg-navy-800 p-3">
+            <p className="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">Credits</p>
+            <p className="mt-1 text-lg font-semibold text-gray-900 dark:text-white">{recordCounts.credits || 0}</p>
+          </div>
+          <div className="rounded-xl bg-gray-50 dark:bg-navy-800 p-3">
+            <p className="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">Reinvestments</p>
+            <p className="mt-1 text-lg font-semibold text-gray-900 dark:text-white">{recordCounts.reinvestments || 0}</p>
+          </div>
+        </div>
+      </Card>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <StatCard

@@ -148,6 +148,7 @@ export const analyticsAPI = {
   getProjections: (params) => api.get('/analytics/projections/', { params }),
   getMonthly: (params) => api.get('/analytics/monthly/', { params }),
   getComprehensiveReport: (params) => api.get('/analytics/comprehensive-report/', { params }),
+  seedDemoData: () => api.post('/analytics/seed-demo/'),
 }
 
 // Chat API
