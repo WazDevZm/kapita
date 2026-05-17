@@ -151,6 +151,11 @@ export const analyticsAPI = {
   seedDemoData: () => api.post('/analytics/seed-demo/'),
 }
 
+// AI proxy API (server-side) — frontend should never include the key
+export const aiAPI = {
+  query: (payload) => api.post('/analytics/ai-query/', payload),
+}
+
 // Chat API
 export const chatAPI = {
   sendMessage: (message) => api.post('/chat/', { message }),

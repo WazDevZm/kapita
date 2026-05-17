@@ -34,6 +34,7 @@ INSTALLED_APPS = [
     # Third party apps
     'rest_framework',
     'rest_framework_simplejwt',
+    'rest_framework_simplejwt.token_blacklist',
     'corsheaders',
     'django_filters',
     
@@ -181,12 +182,16 @@ SIMPLE_JWT = {
 # CORS Settings
 CORS_ALLOWED_ORIGINS = config(
     'CORS_ALLOWED_ORIGINS',
-    default='http://localhost:3000,http://localhost:3001,http://localhost:5173'
+    default='http://localhost:3000,http://localhost:3001,http://localhost:3002,http://localhost:5173'
 ).split(',')
 
 CSRF_TRUSTED_ORIGINS = config(
     'CSRF_TRUSTED_ORIGINS',
-    default='http://localhost:3000,http://localhost:3001,http://localhost:5173'
+    default='http://localhost:3000,http://localhost:3001,http://localhost:3002,http://localhost:5173'
 ).split(',')
 
 CORS_ALLOW_CREDENTIALS = True
+
+# OpenAI / Router config (set via environment variable, do NOT commit real keys)
+OPENAI_API_KEY = config('OPENAI_API_KEY', default='')
+OPENAI_ROUTER_URL = config('OPENAI_ROUTER_URL', default='https://api.openai.com/v1')

@@ -8,6 +8,7 @@ from .views import (
     MonthlyAnalyticsView,
     ComprehensiveReportView,
     SeedDemoDataView,
+    ai_query,
 )
 
 urlpatterns = [
@@ -19,4 +20,5 @@ urlpatterns = [
     path('monthly/', MonthlyAnalyticsView.as_view(), name='monthly'),
     path('comprehensive-report/', ComprehensiveReportView.as_view(), name='comprehensive_report'),
     path('seed-demo/', SeedDemoDataView.as_view(), name='seed_demo'),
+    path('ai-query/', ai_query, name='ai_query'),
 ]

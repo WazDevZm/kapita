@@ -15,6 +15,9 @@ from expenses.models import Expense
 from credits.models import Credit
 from customers.models import Customer
 from reinvestments.models import Reinvestment
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated as DRFIsAuthenticated
+from .openai_client import call_openai_responses, OpenAIError
 
 
 class DashboardSummaryView(APIView):
@@ -855,3 +858,51 @@ class ComprehensiveReportView(APIView):
             })
         
         return recommendations
+
+
+@api_view(['POST'])
+@permission_classes([DRFIsAuthenticated])
+def ai_query(request):
+    """Proxy endpoint to call OpenAI Router Responses API from the server.
+
+    Expects JSON: { "input": "user prompt text" }
+    Requires authenticated user.
+    """
+    user = request.user
+    prompt = request.data.get('input') or request.data.get('prompt') or ''
+
+    if not prompt:
+        return Response({'detail': 'No input provided'}, status=status.HTTP_400_BAD_REQUEST)
+
+    payload = {
+        'input': [
+            {
+                'role': 'user',
+                'content': prompt,
+            }
+        ]
+    }
+
+    try:
+        resp = call_openai_responses(payload)
+    except OpenAIError as exc:
+        return Response({'detail': str(exc)}, status=status.HTTP_502_BAD_GATEWAY)
+
+    # Normalize a simple text output when possible
+    result_text = None
+    try:
+        if isinstance(resp, dict) and 'output' in resp:
+            parts = []
+            for item in resp.get('output', []):
+                for c in item.get('content', []):
+                    if isinstance(c, dict) and 'text' in c:
+                        parts.append(c['text'])
+                    elif isinstance(c, str):
+                        parts.append(c)
+            result_text = '\n'.join(parts) if parts else resp
+        else:
+            result_text = resp
+    except Exception:
+        result_text = resp
+
+    return Response({'result': result_text, 'raw': resp})
