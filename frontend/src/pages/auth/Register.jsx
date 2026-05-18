@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuthStore } from '../../store/authStore'
+import PasswordInput from '../../components/PasswordInput'
 
 export default function Register() {
   const navigate = useNavigate()
@@ -137,12 +138,10 @@ export default function Register() {
 
               <div>
                 <label className="label">Password</label>
-                <input
-                  type="password"
-                  required
-                  className="input"
+                <PasswordInput
                   value={formData.password}
                   onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                  required
                 />
                 {errors.password && (
                   <p className="mt-1 text-sm text-red-600">{errors.password[0]}</p>
@@ -151,12 +150,11 @@ export default function Register() {
 
               <div>
                 <label className="label">Confirm Password</label>
-                <input
-                  type="password"
-                  required
-                  className="input"
+                <PasswordInput
                   value={formData.password2}
                   onChange={(e) => setFormData({ ...formData, password2: e.target.value })}
+                  required
+                  placeholder="Confirm Password"
                 />
                 {errors.password2 && (
                   <p className="mt-1 text-sm text-red-600">{errors.password2[0]}</p>

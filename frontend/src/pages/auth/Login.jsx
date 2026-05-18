@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuthStore } from '../../store/authStore'
+import PasswordInput from '../../components/PasswordInput'
 
 export default function Login() {
   const navigate = useNavigate()
@@ -72,12 +73,10 @@ export default function Login() {
 
             <div>
               <label className="label">Password</label>
-              <input
-                type="password"
-                required
-                className="input"
+              <PasswordInput
                 value={formData.password}
                 onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                required
               />
             </div>
 

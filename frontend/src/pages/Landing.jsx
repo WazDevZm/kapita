@@ -111,20 +111,20 @@ export default function Landing() {
         </nav>
 
         <section className="relative px-4 pb-20 pt-14 sm:px-6 lg:px-8 lg:pb-24 lg:pt-20">
-          <div className="mx-auto grid max-w-7xl items-center gap-12 lg:grid-cols-2">
-            <div>
+          <div className="mx-auto max-w-7xl">
+            <div className="text-center">
               <div className="mb-6 inline-flex items-center rounded-full border border-slate-200 bg-slate-50 px-4 py-2 text-sm text-slate-600">
-                Built for small businesses across Africa
+                Built for small businesses at the Copperbelt University in Zambia❤️
               </div>
-              <h1 className="max-w-3xl text-5xl font-bold tracking-tight text-slate-900 md:text-6xl">
+              <h1 className="mx-auto max-w-3xl text-5xl font-bold tracking-tight text-slate-900 md:text-6xl">
                 Smart Business Tracking
                 <span className="block text-primary-600">Made Simple</span>
               </h1>
-              <p className="mt-6 max-w-2xl text-lg leading-8 text-slate-600 md:text-xl">
+              <p className="mx-auto mt-6 max-w-2xl text-lg leading-8 text-slate-600 md:text-xl">
                 The complete business management solution for small businesses in Africa.
                 Track inventory, sales, customers, and finances all in one place.
               </p>
-              <div className="mt-8 flex flex-wrap items-center gap-4">
+              <div className="mt-8 flex flex-wrap items-center justify-center gap-4">
                 <Link to="/register" className="btn btn-primary text-lg px-8 py-3 flex items-center space-x-2">
                   <span>Start Free Trial</span>
                   <ArrowRight className="w-5 h-5" />
@@ -133,7 +133,7 @@ export default function Landing() {
                   Sign In
                 </Link>
               </div>
-              <div className="mt-8 flex flex-wrap gap-3">
+              <div className="mt-8 flex flex-wrap justify-center gap-3">
                 {heroStats.map((item) => (
                   <div key={item.label} className="rounded-2xl border border-slate-200 bg-white px-4 py-3 shadow-sm">
                     <div className="text-xs uppercase tracking-[0.2em] text-slate-500">{item.label}</div>
@@ -141,26 +141,12 @@ export default function Landing() {
                   </div>
                 ))}
               </div>
-              <p className="mt-4 text-sm text-slate-500">
+              <p className="mt-4 text-center text-sm text-slate-500">
                 Only K20/month • No credit card required • Cancel anytime
               </p>
             </div>
 
-            <div className="relative">
-              <div className="rounded-[2rem] border border-slate-200 bg-gradient-to-br from-slate-50 to-white p-6 shadow-xl">
-                <div className="flex h-[420px] items-center justify-center rounded-[1.5rem] border border-dashed border-slate-200 bg-white">
-                  <div className="max-w-md text-center">
-                    <div className="mx-auto mb-5 flex h-20 w-20 items-center justify-center rounded-3xl bg-primary-50 text-primary-600 shadow-sm">
-                      <BarChart3 className="h-10 w-10" />
-                    </div>
-                    <h3 className="text-2xl font-bold text-slate-900">Business dashboard preview</h3>
-                    <p className="mt-3 text-slate-600">
-                      Clean, modern interface for sales, customers, and inventory.
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
+
           </div>
         </section>
 
@@ -220,7 +206,7 @@ export default function Landing() {
             <div className="rounded-3xl border border-slate-200 bg-gradient-to-br from-primary-500 to-primary-700 p-8 text-white shadow-2xl">
               <div className="space-y-6">
                 <div className="rounded-2xl bg-white/10 p-6 backdrop-blur-sm">
-                  <div className="mb-2 text-4xl font-bold">K20</div>
+                  <div className="mb-2 text-4xl font-bold">K29.99</div>
                   <div className="text-white/80">per month</div>
                 </div>
                 <div className="space-y-3">
@@ -301,7 +287,7 @@ export default function Landing() {
                   </div>
                 </div>
                 <p className="text-slate-600">
-                  Smart business tracking made simple for African entrepreneurs
+                  Smart business tracking made simple for Zambian entrepreneurs
                 </p>
               </div>
               <div>
@@ -321,7 +307,7 @@ export default function Landing() {
                 </ul>
               </div>
               <div>
-                <h3 className="mb-4 font-semibold">Legal</h3>
+                <h3 className="mb-4 font-semibold"></h3>
                 <ul className="space-y-2 text-slate-600">
                   <li><a href="#" className="hover:text-white">Privacy</a></li>
                   <li><a href="#" className="hover:text-white">Terms</a></li>
@@ -329,7 +315,7 @@ export default function Landing() {
               </div>
             </div>
             <div className="mt-8 border-t border-slate-200 pt-8 text-center text-slate-500">
-              <p>&copy; 2024 Kapita. All rights reserved.</p>
+              <p>&copy; 2026 Kapita. All rights reserved,being built by Wazingwa Mugala - Software Engineer</p>
             </div>
           </div>
         </footer>

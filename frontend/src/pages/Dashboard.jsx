@@ -65,25 +65,6 @@ export default function Dashboard() {
   const { summary, recent_activity, alerts } = dashboardData || {}
   const recordCounts = summary?.record_counts || {}
 
-  const nonAiSuggestions = [
-    {
-      title: 'Invoice generation',
-      description: 'Generate and download printable invoices for sales and credits.',
-    },
-    {
-      title: 'Low stock workflows',
-      description: 'Create restock thresholds and reminders for fast-moving products.',
-    },
-    {
-      title: 'Multi-user roles',
-      description: 'Allow staff accounts with limited permissions for sales or stock entry.',
-    },
-    {
-      title: 'CSV / Excel export',
-      description: 'Export products, sales, and expenses for offline accounting reviews.',
-    },
-  ]
-
   const COLORS = ['#10b981', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899']
   const formatChartDay = (value) => {
     if (!value) return 'No date'
@@ -349,25 +330,6 @@ export default function Dashboard() {
                   </div>
                   <div>
                     <p className="font-medium text-gray-900 dark:text-white">
-
-                <Card>
-                  <div className="flex items-center justify-between mb-4">
-                    <div>
-                      <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Next non-AI features</h3>
-                      <p className="text-sm text-gray-500 dark:text-gray-400">
-                        Practical additions that improve daily operations without adding AI yet.
-                      </p>
-                    </div>
-                  </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {nonAiSuggestions.map((item) => (
-                      <div key={item.title} className="rounded-xl border border-gray-200 dark:border-navy-700 p-4 bg-gray-50 dark:bg-navy-800/50">
-                        <h4 className="font-semibold text-gray-900 dark:text-white">{item.title}</h4>
-                        <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">{item.description}</p>
-                      </div>
-                    ))}
-                  </div>
-                </Card>
                       {sale.product_details?.name}
                     </p>
                     <p className="text-sm text-gray-500 dark:text-gray-400">
