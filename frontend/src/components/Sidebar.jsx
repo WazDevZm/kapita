@@ -12,6 +12,7 @@ import {
   Settings,
   LineChart,
   MessageSquare,
+  ShieldCheck,
   X
 } from 'lucide-react'
 
@@ -26,6 +27,7 @@ const navigation = [
   { name: 'Analytics', href: '/app/analytics', icon: BarChart3 },
   { name: 'Projections', href: '/app/projections', icon: LineChart },
   { name: 'Reports', href: '/app/reports', icon: FileText },
+  { name: 'Billing & Access', href: '/app/billing', icon: ShieldCheck },
   { name: 'AI Assistant', href: '/app/chat', icon: MessageSquare },
   { name: 'Settings', href: '/app/settings', icon: Settings },
 ]

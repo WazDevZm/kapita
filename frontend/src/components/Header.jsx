@@ -1,4 +1,4 @@
-import { Menu, Bell, Moon, Sun, LogOut } from 'lucide-react'
+import { Menu, Bell, Moon, Sun, LogOut, ShieldCheck } from 'lucide-react'
 import { useAuthStore } from '../store/authStore'
 import { useThemeStore } from '../store/themeStore'
 import { useState, useEffect } from 'react'
@@ -46,6 +46,13 @@ export default function Header({ onMenuClick }) {
 
         {/* Right side */}
         <div className="flex items-center space-x-4">
+          {user?.access_status && !user?.is_staff && (
+            <div className="hidden sm:flex items-center gap-2 rounded-full bg-gray-100 px-3 py-1 text-xs font-semibold text-gray-700 dark:bg-navy-700 dark:text-gray-200">
+              <ShieldCheck className="h-3.5 w-3.5" />
+              <span>{user.access_status.replace(/_/g, ' ')}</span>
+            </div>
+          )}
+
           {/* Theme toggle */}
           <button
             onClick={toggleTheme}

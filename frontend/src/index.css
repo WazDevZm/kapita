@@ -24,6 +24,14 @@
   .btn-danger {
     @apply bg-red-600 text-white hover:bg-red-700 active:bg-red-800;
   }
+
+  .btn-sm {
+    @apply px-3 py-1.5 text-sm rounded-lg;
+  }
+
+  .btn-outline {
+    @apply border border-gray-300 bg-transparent text-gray-800 hover:bg-gray-100 dark:border-navy-600 dark:text-gray-100 dark:hover:bg-navy-700;
+  }
   
   .card {
     @apply bg-white dark:bg-navy-800 rounded-xl shadow-sm border border-gray-200 dark:border-navy-700 p-6;
@@ -35,6 +43,84 @@
   
   .label {
     @apply block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2;
+  }
+
+  /* Landing page buttons */
+  .landing-btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-xl font-semibold transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2;
+  }
+
+  .landing-btn-primary {
+    @apply landing-btn bg-primary-600 text-white shadow-md shadow-primary-600/20 hover:bg-primary-700 hover:shadow-lg hover:shadow-primary-600/25 active:scale-[0.98];
+  }
+
+  .landing-btn-secondary {
+    @apply landing-btn border border-slate-200 bg-white text-slate-800 shadow-sm hover:border-slate-300 hover:bg-slate-50 active:scale-[0.98];
+  }
+
+  .landing-btn-ghost {
+    @apply landing-btn rounded-lg px-4 py-2.5 text-sm font-medium text-slate-600 hover:bg-slate-100 hover:text-slate-900;
+  }
+
+  .landing-btn-nav-cta {
+    @apply landing-btn rounded-full bg-primary-600 px-5 py-2.5 text-sm text-white shadow-sm shadow-primary-600/25 hover:bg-primary-700 hover:shadow-md active:scale-[0.98];
+  }
+
+  .landing-btn-white {
+    @apply landing-btn w-full bg-white text-primary-600 shadow-sm hover:bg-slate-50 active:scale-[0.98];
+  }
+
+  .landing-btn-lg {
+    @apply px-8 py-3.5 text-base sm:text-lg;
+  }
+
+  /* Floating navbar — light streak around border */
+  .floating-nav-shell {
+    @apply relative rounded-full p-[1.5px];
+  }
+
+  .floating-nav-glow {
+    @apply absolute inset-0 overflow-hidden rounded-full;
+  }
+
+  .floating-nav-glow::before {
+    content: '';
+    position: absolute;
+    inset: -50%;
+    background: conic-gradient(
+      from 0deg,
+      transparent 0deg,
+      transparent 280deg,
+      rgba(16, 185, 129, 0.15) 300deg,
+      rgba(52, 211, 153, 0.95) 330deg,
+      rgba(110, 231, 183, 1) 350deg,
+      rgba(52, 211, 153, 0.95) 10deg,
+      rgba(16, 185, 129, 0.15) 30deg,
+      transparent 50deg,
+      transparent 360deg
+    );
+    animation: floating-nav-spin 4s linear infinite;
+  }
+
+  .floating-nav-inner {
+    @apply relative flex h-14 items-center justify-between gap-4 rounded-full border border-slate-200/60 bg-white/90 px-4 shadow-lg shadow-slate-900/5 backdrop-blur-xl sm:px-6;
+  }
+
+  .landing-social-icon {
+    @apply flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 bg-slate-50 text-slate-500 transition-all duration-200 hover:border-primary-200 hover:bg-primary-50 hover:text-primary-600;
+  }
+}
+
+@keyframes floating-nav-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .floating-nav-glow::before {
+    animation: none;
+    background: linear-gradient(90deg, transparent, rgba(52, 211, 153, 0.4), transparent);
   }
 }
 

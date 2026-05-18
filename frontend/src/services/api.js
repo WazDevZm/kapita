@@ -46,7 +46,8 @@ api.interceptors.response.use(
       } catch (refreshError) {
         localStorage.removeItem('access_token')
         localStorage.removeItem('refresh_token')
-        window.location.href = '/login'
+        const isAdminPath = window.location.pathname.startsWith('/admin')
+        window.location.href = isAdminPath ? '/admin/login' : '/login'
         return Promise.reject(refreshError)
       }
     }
@@ -149,6 +150,25 @@ export const analyticsAPI = {
   getProjections: (params) => api.get('/analytics/projections/', { params }),
   getMonthly: (params) => api.get('/analytics/monthly/', { params }),
   getComprehensiveReport: (params) => api.get('/analytics/comprehensive-report/', { params }),
+}
+
+// Billing + subscription APIs
+export const billingAPI = {
+  getMyStatus: () => api.get('/billing/me/'),
+  submitPaymentProof: (formData) => api.post('/billing/submit-proof/', formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  }),
+  getHistory: () => api.get('/billing/history/'),
+  getAdminOverview: () => api.get('/billing/admin/overview/'),
+  getAdminUsers: (params) => api.get('/billing/admin/users/', { params }),
+  exportAdminUsersCsv: (params) => api.get('/billing/admin/users/', { params: { ...params, export: 'csv' }, responseType: 'blob' }),
+  getAdminPayments: (params) => api.get('/billing/admin/payments/', { params }),
+  approvePayment: (paymentId, data) => api.post(`/billing/admin/payments/${paymentId}/approve/`, data),
+  rejectPayment: (paymentId, data) => api.post(`/billing/admin/payments/${paymentId}/reject/`, data),
+  getSubscriptionHistory: (userId) => api.get(`/billing/admin/subscriptions/${userId}/history/`),
+  extendSubscription: (userId, data) => api.post(`/billing/admin/subscriptions/${userId}/extend/`, data),
+  revokeSubscription: (userId) => api.post(`/billing/admin/subscriptions/${userId}/revoke/`),
+  getActivityLogs: () => api.get('/billing/admin/activity/'),
 }
 
 // AI proxy API (server-side) — frontend should never include the key

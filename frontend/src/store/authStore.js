@@ -25,7 +25,7 @@ export const useAuthStore = create((set) => ({
         loading: false 
       })
       
-      return { success: true }
+      return { success: true, user: profileResponse.data }
     } catch (error) {
       set({ 
         error: error.response?.data?.detail || 'Login failed', 

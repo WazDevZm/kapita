@@ -3,65 +3,67 @@ import { Link, useNavigate } from 'react-router-dom'
 import { useAuthStore } from '../../store/authStore'
 import PasswordInput from '../../components/PasswordInput'
 
-export default function Login() {
+export default function AdminLogin() {
   const navigate = useNavigate()
-  const { login, loading } = useAuthStore()
-  const [formData, setFormData] = useState({
-    username: '',
-    password: '',
-  })
+  const { login, logout, loading } = useAuthStore()
+  const [formData, setFormData] = useState({ username: '', password: '' })
   const [error, setError] = useState('')
 
-  const handleSubmit = async (e) => {
-    e.preventDefault()
+  const handleSubmit = async (event) => {
+    event.preventDefault()
     setError('')
-
     const result = await login(formData)
-    if (result.success) {
-      if (result.user?.is_staff) {
-        navigate('/admin')
-      } else if (result.user?.is_expired || result.user?.access_status === 'expired' || result.user?.access_status === 'pending_payment_verification') {
-        navigate('/app/billing')
-      } else {
-        navigate('/app/dashboard')
-      }
-    } else {
-      setError(result.error?.detail || 'Invalid credentials')
+
+    if (result.success && result.user?.is_staff) {
+      navigate('/admin/overview')
+      return
     }
+
+    logout()
+    setError('Admin access required. Please use an admin account.')
   }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-navy-900 px-4">
-      <div className="max-w-md w-full space-y-8">
-        {/* Logo */}
+      <div className="max-w-md w-full space-y-6">
         <div className="text-center">
           <div className="inline-flex items-center justify-center mb-6">
-            <img 
-              src="/logo1.png" 
-              alt="Kapita Logo" 
+            <img
+              src="/logo1.png"
+              alt="Kapita Logo"
               className="h-24 w-auto object-contain"
               onError={(e) => {
                 e.target.style.display = 'none'
                 e.target.nextElementSibling.style.display = 'flex'
               }}
             />
-            <div className="w-24 h-24 bg-primary-600 rounded-2xl items-center justify-center hidden">
-              <span className="text-white font-bold text-4xl">K</span>
+            <div className="hidden h-24 w-24 items-center justify-center rounded-2xl bg-primary-600">
+              <span className="text-4xl font-bold text-white">K</span>
             </div>
           </div>
-          <h2 className="text-3xl font-bold text-gray-900 dark:text-white">
-            Welcome to Kapita
-          </h2>
+          <h2 className="text-3xl font-bold text-gray-900 dark:text-white">Admin Login</h2>
           <p className="mt-2 text-gray-600 dark:text-gray-400">
-            Smart business tracking made simple
+            Sign in to manage users, subscriptions, and payment verifications.
           </p>
         </div>
 
-        {/* Form */}
+        <div className="rounded-xl border border-primary-200 bg-primary-50 p-4 text-sm text-primary-900 dark:border-primary-800 dark:bg-primary-950/40 dark:text-primary-200">
+          <p className="font-semibold">Default admin credentials (local dev)</p>
+          <p className="mt-1">
+            Username: <code className="font-mono">admin</code>
+          </p>
+          <p>
+            Password: <code className="font-mono">admin12345</code>
+          </p>
+          <p className="mt-2 text-xs text-primary-800/80 dark:text-primary-300/80">
+            Create or reset with: <code className="font-mono">python manage.py create_admin</code>
+          </p>
+        </div>
+
         <div className="card">
           <form onSubmit={handleSubmit} className="space-y-6">
             {error && (
-              <div className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
+              <div className="rounded-lg border border-red-200 bg-red-50 p-3 dark:border-red-800 dark:bg-red-900/20">
                 <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
               </div>
             )}
@@ -86,20 +88,16 @@ export default function Login() {
               />
             </div>
 
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full btn btn-primary"
-            >
-              {loading ? 'Signing in...' : 'Sign in'}
+            <button type="submit" disabled={loading} className="btn btn-primary w-full">
+              {loading ? 'Signing in...' : 'Sign in as Admin'}
             </button>
           </form>
 
           <div className="mt-6 text-center">
             <p className="text-sm text-gray-600 dark:text-gray-400">
-              Don't have an account?{' '}
-              <Link to="/register" className="text-primary-600 hover:text-primary-700 font-medium">
-                Sign up
+              Regular user?{' '}
+              <Link to="/login" className="font-medium text-primary-600 hover:text-primary-700">
+                Go to user login
               </Link>
             </p>
           </div>

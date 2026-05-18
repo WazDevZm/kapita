@@ -21,6 +21,22 @@ class RegisterView(generics.CreateAPIView):
     permission_classes = (AllowAny,)
     serializer_class = RegisterSerializer
 
+    def perform_create(self, serializer):
+        user = serializer.save()
+        from billing.models import ActivityLog
+        from billing.utils import trial_end_date
+        from billing.notifications import simulate_email_notification
+        ActivityLog.objects.create(
+            target_user=user,
+            action='trial_started',
+            details={'trial_end_date': str(trial_end_date(user))},
+        )
+        simulate_email_notification(
+            user=user,
+            subject='Welcome to Kapita — 7-day free trial',
+            message=f'Your free trial is active until {trial_end_date(user)}. No credit card required.',
+        )
+
 
 class ProfileView(generics.RetrieveUpdateAPIView):
     """Get and update user profile"""
