@@ -42,11 +42,11 @@ class RegisterSerializer(serializers.ModelSerializer):
         return attrs
 
     def create(self, validated_data):
+        # Use the manager's `create_user` to ensure password is hashed
+        # and any custom user creation logic runs.
         validated_data.pop('password2')
         password = validated_data.pop('password')
-        user = User.objects.create(**validated_data)
-        user.set_password(password)
-        user.save()
+        user = User.objects.create_user(password=password, **validated_data)
         return user
 
 
