@@ -7,8 +7,6 @@ import {
   CreditCard, 
   AlertTriangle,
   ShoppingCart,
-  Database,
-  Loader2,
 } from 'lucide-react'
 import { StatCard } from '../components/Card'
 import Card from '../components/Card'
@@ -18,7 +16,6 @@ import { LineChart, Line, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tool
 
 export default function Dashboard() {
   const [loading, setLoading] = useState(true)
-  const [demoLoading, setDemoLoading] = useState(false)
   const [dashboardData, setDashboardData] = useState(null)
   const [dailySales, setDailySales] = useState([])
   const [expensesByCategory, setExpensesByCategory] = useState([])
@@ -43,20 +40,6 @@ export default function Dashboard() {
       console.error('Failed to fetch dashboard data:', error)
     } finally {
       setLoading(false)
-    }
-  }
-
-  const loadDemoData = async () => {
-    setDemoLoading(true)
-    try {
-      const response = await analyticsAPI.seedDemoData()
-      await fetchDashboardData()
-      alert(`${response.data.message}. Total records: ${response.data.counts?.total || 0}`)
-    } catch (error) {
-      console.error('Failed to seed demo data:', error)
-      alert(error.response?.data?.detail || 'Failed to load demo data')
-    } finally {
-      setDemoLoading(false)
     }
   }
 
@@ -108,14 +91,6 @@ export default function Dashboard() {
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Dashboard</h1>
           <p className="text-gray-600 dark:text-gray-400">Overview of your business performance</p>
         </div>
-        <button
-          onClick={loadDemoData}
-          disabled={demoLoading}
-          className="btn btn-secondary inline-flex items-center gap-2 self-start md:self-auto"
-        >
-          {demoLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Database className="w-4 h-4" />}
-          <span>{demoLoading ? 'Loading demo data...' : 'Load demo data'}</span>
-        </button>
       </div>
 
       {/* Alerts */}
@@ -172,9 +147,9 @@ export default function Dashboard() {
       <Card>
         <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div>
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Demo record count</h3>
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Live business records</h3>
             <p className="text-sm text-gray-500 dark:text-gray-400">
-              This shows how much business data is currently powering the dashboard.
+              This shows how much real business data is currently powering the dashboard.
             </p>
           </div>
           <div className="text-3xl font-bold text-primary-600 dark:text-primary-400">

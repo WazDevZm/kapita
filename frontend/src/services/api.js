@@ -87,6 +87,7 @@ export const salesAPI = {
   getDailySales: () => api.get('/sales/daily_sales/'),
   getTopProducts: (limit = 10) => api.get('/sales/top_products/', { params: { limit } }),
   getRecent: (limit = 10) => api.get('/sales/recent/', { params: { limit } }),
+  getReceipt: (id) => api.get(`/sales/${id}/receipt/`, { responseType: 'blob' }),
 }
 
 // Customers API
@@ -148,7 +149,6 @@ export const analyticsAPI = {
   getProjections: (params) => api.get('/analytics/projections/', { params }),
   getMonthly: (params) => api.get('/analytics/monthly/', { params }),
   getComprehensiveReport: (params) => api.get('/analytics/comprehensive-report/', { params }),
-  seedDemoData: () => api.post('/analytics/seed-demo/'),
 }
 
 // AI proxy API (server-side) — frontend should never include the key

@@ -147,7 +147,37 @@ export default function Sales() {
         </span>
       )
     },
+    {
+      header: 'Actions',
+      render: (row) => (
+        <div className="flex items-center space-x-2">
+          <button
+            onClick={() => downloadReceipt(row.id)}
+            className="btn btn-sm btn-outline"
+          >
+            Download PDF receipt!
+          </button>
+        </div>
+      )
+    },
   ]
+
+  const downloadReceipt = async (id) => {
+    try {
+      const res = await salesAPI.getReceipt(id)
+      const url = window.URL.createObjectURL(new Blob([res.data], { type: 'application/pdf' }))
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `receipt_${id}.pdf`
+      document.body.appendChild(a)
+      a.click()
+      a.remove()
+      window.URL.revokeObjectURL(url)
+    } catch (error) {
+      console.error('Failed to download receipt', error)
+      alert('Failed to download receipt')
+    }
+  }
 
   if (loading) return <Loading fullScreen />
 
