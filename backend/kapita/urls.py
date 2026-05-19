@@ -2,11 +2,23 @@
 URL configuration for kapita project.
 """
 from django.contrib import admin
+from django.http import JsonResponse
 from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
 
+
+def api_root(request):
+    return JsonResponse({
+        'name': 'Kapita API',
+        'status': 'ok',
+        'api_base': '/api/',
+        'docs_hint': 'Use /api/auth/login/, /api/products/, etc.',
+    })
+
+
 urlpatterns = [
+    path('', api_root),
     path('admin/', admin.site.urls),
     path('api/auth/', include('accounts.urls')),
     path('api/products/', include('products.urls')),
