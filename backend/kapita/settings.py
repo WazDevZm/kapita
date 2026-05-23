@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     
     # Local apps
     'accounts',
+    'billing',
     'products',
     'sales',
     'customers',
@@ -49,7 +50,6 @@ INSTALLED_APPS = [
     'notifications',
     'analytics',
     'chat',
-    'billing',
 ]
 
 MIDDLEWARE = [
@@ -183,15 +183,26 @@ SIMPLE_JWT = {
 # CORS Settings
 CORS_ALLOWED_ORIGINS = config(
     'CORS_ALLOWED_ORIGINS',
-    default='http://localhost:3000,http://localhost:3001,http://localhost:3002,http://localhost:5173'
+    default='http://localhost:3000,http://127.0.0.1:3000,http://localhost:3001,http://localhost:3002,http://localhost:5173,http://127.0.0.1:5173'
 ).split(',')
 
 CSRF_TRUSTED_ORIGINS = config(
     'CSRF_TRUSTED_ORIGINS',
-    default='http://localhost:3000,http://localhost:3001,http://localhost:3002,http://localhost:5173'
+    default='http://localhost:3000,http://127.0.0.1:3000,http://localhost:3001,http://localhost:3002,http://localhost:5173,http://127.0.0.1:5173'
 ).split(',')
 
 CORS_ALLOW_CREDENTIALS = True
+CORS_ALLOW_HEADERS = [
+    'accept',
+    'accept-encoding',
+    'authorization',
+    'content-type',
+    'dnt',
+    'origin',
+    'user-agent',
+    'x-csrftoken',
+    'x-requested-with',
+]
 
 # OpenAI / Router config (set via environment variable, do NOT commit real keys)
 OPENAI_API_KEY = config('OPENAI_API_KEY', default='')

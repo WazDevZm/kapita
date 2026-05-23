@@ -19,7 +19,7 @@ export default function Login() {
     const result = await login(formData)
     if (result.success) {
       if (result.user?.is_staff) {
-        navigate('/admin')
+        navigate('/admin/overview')
       } else if (result.user?.is_expired || result.user?.access_status === 'expired' || result.user?.access_status === 'pending_payment_verification') {
         navigate('/app/billing')
       } else {

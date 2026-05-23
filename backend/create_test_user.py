@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+"""Create a test user for Kapita"""
 import os
 import django
 
@@ -7,21 +8,26 @@ django.setup()
 
 from accounts.models import User
 
-# Delete existing test users
-User.objects.filter(username__in=['demo', 'testuser', 'test']).delete()
+# Create test user
+username = 'testuser'
+email = 'test@kapita.com'
+password = 'testpass123'
 
-# Create a test user with properly hashed password
+# Delete if exists
+User.objects.filter(username=username).delete()
+
+# Create new user
 user = User.objects.create_user(
-    username='demo',
-    email='demo@test.com',
-    password='demo123',
-    first_name='Demo',
+    username=username,
+    email=email,
+    password=password,
+    first_name='Test',
     last_name='User',
-    business_name='Demo Business'
+    business_name='Test Business'
 )
 
-print(f"✅ Created user: {user.username}")
-print(f"   Email: {user.email}")
-print(f"   Password: demo123")
-print(f"   Password hash: {user.password[:50]}...")
-print(f"\n🔐 Password is properly hashed: {user.password.startswith('pbkdf2_sha256')}")
+print(f"✅ Test user created successfully!")
+print(f"Username: {username}")
+print(f"Email: {email}")
+print(f"Password: {password}")
+print(f"\nYou can now login with these credentials.")

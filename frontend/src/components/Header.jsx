@@ -9,16 +9,21 @@ export default function Header({ onMenuClick }) {
   const { theme, toggleTheme } = useThemeStore()
   const [unreadCount, setUnreadCount] = useState(0)
 
+  const billingLocked =
+    user?.access_status === 'expired' ||
+    user?.access_status === 'pending_payment_verification'
+
   useEffect(() => {
+    if (billingLocked) return
     fetchUnreadCount()
-  }, [])
+  }, [billingLocked])
 
   const fetchUnreadCount = async () => {
     try {
       const response = await notificationsAPI.getUnreadCount()
       setUnreadCount(response.data.count)
     } catch (error) {
-      console.error('Failed to fetch notifications:', error)
+      // Ignore when subscription-gated APIs are unavailable
     }
   }
 

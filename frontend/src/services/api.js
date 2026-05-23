@@ -16,6 +16,9 @@ api.interceptors.request.use(
     if (token) {
       config.headers.Authorization = `Bearer ${token}`
     }
+    if (config.data instanceof FormData) {
+      delete config.headers['Content-Type']
+    }
     return config
   },
   (error) => {
@@ -29,11 +32,25 @@ api.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config
 
+    const detail = error.response?.data?.detail
+    const subscriptionBlocked =
+      typeof detail === 'string' &&
+      detail.toLowerCase().includes('trial or subscription')
+
+    if (error.response?.status === 401 && subscriptionBlocked) {
+      if (!window.location.pathname.startsWith('/app/billing')) {
+        window.location.href = '/app/billing'
+      }
+      return Promise.reject(error)
+    }
+
     if (error.response?.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true
 
       try {
         const refreshToken = localStorage.getItem('refresh_token')
+        if (!refreshToken) throw new Error('No refresh token')
+
         const response = await axios.post(`${API_URL}/auth/token/refresh/`, {
           refresh: refreshToken,
         })
@@ -155,9 +172,7 @@ export const analyticsAPI = {
 // Billing + subscription APIs
 export const billingAPI = {
   getMyStatus: () => api.get('/billing/me/'),
-  submitPaymentProof: (formData) => api.post('/billing/submit-proof/', formData, {
-    headers: { 'Content-Type': 'multipart/form-data' },
-  }),
+  submitPaymentProof: (formData) => api.post('/billing/submit-proof/', formData),
   getHistory: () => api.get('/billing/history/'),
   getAdminOverview: () => api.get('/billing/admin/overview/'),
   getAdminUsers: (params) => api.get('/billing/admin/users/', { params }),

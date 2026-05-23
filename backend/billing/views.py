@@ -65,6 +65,7 @@ class SubmitPaymentProofView(APIView):
 class PaymentHistoryView(generics.ListAPIView):
     permission_classes = [IsAuthenticated]
     serializer_class = PaymentSubmissionSerializer
+    pagination_class = None
 
     def get_queryset(self):
         return PaymentSubmission.objects.filter(user=self.request.user)

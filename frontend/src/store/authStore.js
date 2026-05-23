@@ -93,9 +93,15 @@ export const useAuthStore = create((set) => ({
     try {
       const response = await authAPI.getProfile()
       set({ user: response.data })
+      return response.data
     } catch (error) {
       console.error('Failed to fetch user:', error)
+      return null
     }
+  },
+
+  refreshUser: async () => {
+    return useAuthStore.getState().fetchUser()
   },
 
   updateProfile: async (data) => {

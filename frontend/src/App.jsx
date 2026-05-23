@@ -36,7 +36,11 @@ function UserArea({ children }) {
     return <Navigate to="/admin/overview" replace />
   }
 
-  if (user?.access_status === 'expired' && location.pathname !== '/app/billing') {
+  const billingOnly =
+    user?.access_status === 'expired' ||
+    user?.access_status === 'pending_payment_verification'
+
+  if (billingOnly && location.pathname !== '/app/billing') {
     return <Navigate to="/app/billing" replace />
   }
 
@@ -69,9 +73,9 @@ function App() {
         <Route path="/" element={<Landing />} />
         
         {/* Public routes */}
-        <Route path="/login" element={!isAuthenticated ? <Login /> : user?.is_staff ? <Navigate to="/admin/overview" replace /> : <Navigate to={user?.access_status === 'expired' ? '/app/billing' : '/app/dashboard'} replace />} />
-        <Route path="/register" element={!isAuthenticated ? <Register /> : user?.is_staff ? <Navigate to="/admin/overview" replace /> : <Navigate to={user?.access_status === 'expired' ? '/app/billing' : '/app/dashboard'} replace />} />
-        <Route path="/admin/login" element={!isAuthenticated ? <AdminLogin /> : user?.is_staff ? <Navigate to="/admin/overview" replace /> : <Navigate to={user?.access_status === 'expired' ? '/app/billing' : '/app/dashboard'} replace />} />
+        <Route path="/login" element={!isAuthenticated ? <Login /> : user?.is_staff ? <Navigate to="/admin/overview" replace /> : <Navigate to={['expired', 'pending_payment_verification'].includes(user?.access_status) ? '/app/billing' : '/app/dashboard'} replace />} />
+        <Route path="/register" element={!isAuthenticated ? <Register /> : user?.is_staff ? <Navigate to="/admin/overview" replace /> : <Navigate to={['expired', 'pending_payment_verification'].includes(user?.access_status) ? '/app/billing' : '/app/dashboard'} replace />} />
+        <Route path="/admin/login" element={!isAuthenticated ? <AdminLogin /> : user?.is_staff ? <Navigate to="/admin/overview" replace /> : <Navigate to={['expired', 'pending_payment_verification'].includes(user?.access_status) ? '/app/billing' : '/app/dashboard'} replace />} />
 
         {/* Admin routes */}
         <Route
