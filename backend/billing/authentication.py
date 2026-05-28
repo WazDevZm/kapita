@@ -1,6 +1,8 @@
+from django.conf import settings
 from rest_framework.exceptions import AuthenticationFailed
 from rest_framework_simplejwt.authentication import JWTAuthentication
 
+from accounts.clerk_auth import authenticate_clerk_user
 from .utils import access_status
 
 EXEMPT_PATH_PREFIXES = (
@@ -9,16 +11,22 @@ EXEMPT_PATH_PREFIXES = (
     '/api/auth/token/refresh/',
     '/api/auth/me/',
     '/api/auth/profile/',
+    '/api/auth/receipt-settings/',
     '/api/auth/change-password/',
     '/api/billing/submit-proof/',
     '/api/billing/me/',
     '/api/billing/history/',
+    '/api/billing/proof/',
 )
 
 
 class SubscriptionJWTAuthentication(JWTAuthentication):
     def authenticate(self, request):
-        result = super().authenticate(request)
+        result = None
+        if settings.CLERK_SECRET_KEY:
+            result = authenticate_clerk_user(request)
+        if not result:
+            result = super().authenticate(request)
         if not result:
             return None
 

@@ -9,7 +9,8 @@ from .serializers import (
     UserSerializer,
     RegisterSerializer,
     ChangePasswordSerializer,
-    ProfileUpdateSerializer
+    ProfileUpdateSerializer,
+    ReceiptSettingsSerializer,
 )
 
 User = get_user_model()
@@ -24,7 +25,20 @@ class RegisterView(generics.CreateAPIView):
 
 class ProfileView(generics.RetrieveUpdateAPIView):
     """Get and update user profile"""
-    serializer_class = UserSerializer
+    permission_classes = (IsAuthenticated,)
+
+    def get_object(self):
+        return self.request.user
+
+    def get_serializer_class(self):
+        if self.request.method in ('PUT', 'PATCH'):
+            return ProfileUpdateSerializer
+        return UserSerializer
+
+
+class ReceiptSettingsView(generics.RetrieveUpdateAPIView):
+    """Get and update details shown on customer PDF receipts."""
+    serializer_class = ReceiptSettingsSerializer
     permission_classes = (IsAuthenticated,)
 
     def get_object(self):

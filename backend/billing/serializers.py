@@ -4,6 +4,7 @@ from django.utils import timezone
 
 from .models import PaymentSubmission, Subscription, ActivityLog
 from .utils import access_summary, trial_end_date, latest_active_subscription, latest_payment
+from .media_urls import build_payment_proof_url
 
 User = get_user_model()
 
@@ -24,13 +25,10 @@ class PaymentSubmissionSerializer(serializers.ModelSerializer):
         read_only_fields = ['id', 'user', 'user_username', 'user_email', 'user_business_name', 'status', 'admin_notes', 'reviewed_by', 'reviewed_at', 'created_at', 'updated_at', 'proof_image_url']
 
     def get_proof_image_url(self, obj):
-        request = self.context.get('request')
         if not obj.proof_image:
             return None
-        url = obj.proof_image.url
-        if request is not None:
-            return request.build_absolute_uri(url)
-        return url
+        request = self.context.get('request')
+        return build_payment_proof_url(request, obj.id)
 
 
 class PaymentSubmissionCreateSerializer(serializers.ModelSerializer):

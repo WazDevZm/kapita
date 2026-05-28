@@ -146,8 +146,8 @@ export default function Credits() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Credits</h1>
-          <p className="text-gray-600 dark:text-gray-400">Track customer debts and payments</p>
+          <h1 className="text-2xl font-bold text-gray-900">Credits</h1>
+          <p className="text-gray-600">Track customer debts and payments</p>
         </div>
         <button
           onClick={() => setShowModal(true)}
@@ -292,12 +292,12 @@ export default function Credits() {
         title="Record Payment"
       >
         {selectedCredit && (
-          <div className="mb-4 p-4 bg-gray-50 dark:bg-navy-700 rounded-lg">
-            <p className="text-sm text-gray-600 dark:text-gray-400">Customer</p>
-            <p className="font-semibold text-gray-900 dark:text-white">
+          <div className="mb-4 p-4 bg-gray-50 rounded-lg">
+            <p className="text-sm text-gray-600">Customer</p>
+            <p className="font-semibold text-gray-900">
               {selectedCredit.customer_details?.name}
             </p>
-            <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">Remaining Balance</p>
+            <p className="text-sm text-gray-600 mt-2">Remaining Balance</p>
             <p className="font-semibold text-red-600">
               ZMW {parseFloat(selectedCredit.remaining_balance).toLocaleString()}
             </p>

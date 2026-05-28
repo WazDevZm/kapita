@@ -33,18 +33,18 @@ import { CHART_COLORS, chartAxisStroke, chartGridStroke, chartTooltipStyle } fro
 
 function StatCard({ title, value, icon: Icon, tone }) {
   const toneClass = {
-    green: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300',
-    yellow: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-300',
-    red: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300',
-    blue: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300',
-    primary: 'bg-primary-100 text-primary-700 dark:bg-primary-900/30 dark:text-primary-300',
+    green: 'bg-green-100 text-green-700',
+    yellow: 'bg-yellow-100 text-yellow-700',
+    red: 'bg-red-100 text-red-700',
+    blue: 'bg-blue-100 text-blue-700',
+    primary: 'bg-primary-100 text-primary-700',
   }
   return (
     <Card>
       <div className="flex items-center justify-between">
         <div>
-          <p className="text-sm text-gray-500 dark:text-gray-400">{title}</p>
-          <p className="mt-2 text-3xl font-bold text-gray-900 dark:text-white">{value}</p>
+          <p className="text-sm text-gray-500">{title}</p>
+          <p className="mt-2 text-3xl font-bold text-gray-900">{value}</p>
         </div>
         <div className={`rounded-2xl p-3 ${toneClass[tone]}`}>
           <Icon className="h-6 w-6" />
@@ -56,7 +56,7 @@ function StatCard({ title, value, icon: Icon, tone }) {
 
 function ChartEmpty({ message }) {
   return (
-    <div className="flex h-[280px] items-center justify-center rounded-xl border border-dashed border-gray-300 text-sm text-gray-500 dark:border-navy-700 dark:text-gray-400">
+    <div className="flex h-[280px] items-center justify-center rounded-xl border border-dashed border-gray-300 text-sm text-gray-500">
       {message}
     </div>
   )
@@ -97,8 +97,8 @@ export default function AdminOverview() {
     <div className="space-y-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Dashboard Overview</h1>
-          <p className="mt-1 text-gray-600 dark:text-gray-400">
+          <h1 className="text-2xl font-bold text-gray-900">Dashboard Overview</h1>
+          <p className="mt-1 text-gray-600">
             SaaS metrics, user access breakdown, and payment analytics.
           </p>
         </div>
@@ -109,7 +109,7 @@ export default function AdminOverview() {
       </div>
 
       {error && (
-        <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700 dark:border-red-900/50 dark:bg-red-950/40 dark:text-red-300">
+        <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
           {error}
         </div>
       )}
@@ -134,7 +134,7 @@ export default function AdminOverview() {
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         <Card>
-          <h2 className="mb-4 text-lg font-semibold text-gray-900 dark:text-white">User access breakdown</h2>
+          <h2 className="mb-4 text-lg font-semibold text-gray-900">User access breakdown</h2>
           {statusData.length === 0 ? (
             <ChartEmpty message="No users yet." />
           ) : (
@@ -161,7 +161,7 @@ export default function AdminOverview() {
         </Card>
 
         <Card>
-          <h2 className="mb-4 text-lg font-semibold text-gray-900 dark:text-white">Payment submissions by status</h2>
+          <h2 className="mb-4 text-lg font-semibold text-gray-900">Payment submissions by status</h2>
           {paymentStatusData.length === 0 ? (
             <ChartEmpty message="No payment submissions yet." />
           ) : (
@@ -181,7 +181,7 @@ export default function AdminOverview() {
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         <Card>
-          <h2 className="mb-4 text-lg font-semibold text-gray-900 dark:text-white">New signups (6 months)</h2>
+          <h2 className="mb-4 text-lg font-semibold text-gray-900">New signups (6 months)</h2>
           {signupsTrend.every((d) => d.signups === 0) ? (
             <ChartEmpty message="No signups in the last 6 months." />
           ) : (
@@ -198,7 +198,7 @@ export default function AdminOverview() {
         </Card>
 
         <Card>
-          <h2 className="mb-4 text-lg font-semibold text-gray-900 dark:text-white">Approved payments (6 months)</h2>
+          <h2 className="mb-4 text-lg font-semibold text-gray-900">Approved payments (6 months)</h2>
           {paymentsTrend.every((d) => d.approved === 0) ? (
             <ChartEmpty message="No approved payments yet." />
           ) : (
@@ -218,7 +218,7 @@ export default function AdminOverview() {
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         <Card>
-          <h2 className="mb-4 text-lg font-semibold text-gray-900 dark:text-white">Revenue from approved payments</h2>
+          <h2 className="mb-4 text-lg font-semibold text-gray-900">Revenue from approved payments</h2>
           {paymentsTrend.every((d) => d.revenue === 0) ? (
             <ChartEmpty message="No revenue recorded yet." />
           ) : (
@@ -235,7 +235,7 @@ export default function AdminOverview() {
         </Card>
 
         <Card>
-          <h2 className="mb-4 text-lg font-semibold text-gray-900 dark:text-white">Platform activity (14 days)</h2>
+          <h2 className="mb-4 text-lg font-semibold text-gray-900">Platform activity (14 days)</h2>
           {activityTrend.every((d) => d.events === 0) ? (
             <ChartEmpty message="No activity logged yet." />
           ) : (
@@ -254,7 +254,7 @@ export default function AdminOverview() {
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         <Card>
-          <h2 className="mb-4 text-lg font-semibold text-gray-900 dark:text-white">Quick actions</h2>
+          <h2 className="mb-4 text-lg font-semibold text-gray-900">Quick actions</h2>
           <div className="flex flex-wrap gap-3">
             <Link to="/admin/payments" className="btn btn-primary">
               Review payments
@@ -270,18 +270,18 @@ export default function AdminOverview() {
         </Card>
 
         <Card>
-          <h2 className="mb-4 text-lg font-semibold text-gray-900 dark:text-white">Recent activity</h2>
+          <h2 className="mb-4 text-lg font-semibold text-gray-900">Recent activity</h2>
           <div className="max-h-72 space-y-3 overflow-y-auto">
             {(overview?.recent_activity || []).length === 0 && (
-              <p className="text-sm text-gray-500 dark:text-gray-400">No activity yet.</p>
+              <p className="text-sm text-gray-500">No activity yet.</p>
             )}
             {(overview?.recent_activity || []).map((log) => (
-              <div key={log.id} className="rounded-xl border border-gray-200 p-3 dark:border-navy-700">
+              <div key={log.id} className="rounded-xl border border-gray-200 p-3">
                 <div className="flex items-center justify-between gap-2">
-                  <p className="text-sm font-medium text-gray-900 dark:text-white">{formatStatus(log.action)}</p>
+                  <p className="text-sm font-medium text-gray-900">{formatStatus(log.action)}</p>
                   <span className="text-xs text-gray-500">{new Date(log.created_at).toLocaleString()}</span>
                 </div>
-                <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                <p className="mt-1 text-xs text-gray-500">
                   {log.actor_username || 'system'} → {log.target_username || 'N/A'}
                 </p>
               </div>

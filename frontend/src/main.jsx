@@ -1,10 +1,25 @@
-import React from 'react'
-import ReactDOM from 'react-dom/client'
-import App from './App.jsx'
+import { StrictMode } from 'react'
+import { createRoot } from 'react-dom/client'
+import { ClerkProvider } from '@clerk/react'
 import './index.css'
+import App from './App.jsx'
+import { isClerkEnabled } from './config/auth.js'
 
-ReactDOM.createRoot(document.getElementById('root')).render(
-  <React.StrictMode>
-    <App />
-  </React.StrictMode>,
+document.documentElement.classList.remove('dark')
+localStorage.setItem('theme', 'light')
+
+createRoot(document.getElementById('root')).render(
+  <StrictMode>
+    {isClerkEnabled ? (
+      <ClerkProvider
+        afterSignOutUrl="/"
+        signInUrl="/login"
+        signUpUrl="/register"
+      >
+        <App />
+      </ClerkProvider>
+    ) : (
+      <App />
+    )}
+  </StrictMode>,
 )

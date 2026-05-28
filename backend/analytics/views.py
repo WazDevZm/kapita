@@ -1,9 +1,12 @@
+from datetime import datetime, timedelta
+
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from rest_framework import status
 from django.db.models import Sum, Count
 from django.db.models.functions import TruncDate
+from django.utils import timezone
 
 from products.models import Product
 from sales.models import Sale
@@ -456,100 +459,106 @@ class MonthlyAnalyticsView(APIView):
 
 
 class ComprehensiveReportView(APIView):
-    """Generate comprehensive PDF report"""
+    """Generate comprehensive business report data for UI/PDF export."""
     permission_classes = [IsAuthenticated]
+
+    def _parse_period(self, request):
+        report_type = request.query_params.get('type', 'monthly')
+        now = timezone.localtime()
+        year = int(request.query_params.get('year', now.year))
+
+        if report_type == 'monthly':
+            month = int(request.query_params.get('month', now.month))
+            start = timezone.make_aware(datetime(year, month, 1))
+            if month == 12:
+                end = timezone.make_aware(datetime(year + 1, 1, 1))
+            else:
+                end = timezone.make_aware(datetime(year, month + 1, 1))
+            label = start.strftime('%B %Y')
+        elif report_type == 'yearly':
+            start = timezone.make_aware(datetime(year, 1, 1))
+            end = timezone.make_aware(datetime(year + 1, 1, 1))
+            label = f'Year {year}'
+        else:
+            start_str = request.query_params.get('start_date')
+            end_str = request.query_params.get('end_date')
+            if start_str and end_str:
+                start = timezone.make_aware(datetime.fromisoformat(start_str))
+                end = timezone.make_aware(datetime.fromisoformat(end_str)) + timedelta(days=1)
+                label = f'{start.strftime("%d %b %Y")} – {(end - timedelta(days=1)).strftime("%d %b %Y")}'
+            else:
+                start = timezone.make_aware(datetime(now.year, now.month, 1))
+                if now.month == 12:
+                    end = timezone.make_aware(datetime(now.year + 1, 1, 1))
+                else:
+                    end = timezone.make_aware(datetime(now.year, now.month + 1, 1))
+                label = start.strftime('%B %Y')
+                report_type = 'monthly'
+
+        return report_type, start, end, label
 
     def get(self, request):
         user = request.user
-        report_type = request.query_params.get('type', 'monthly')
-        month = request.query_params.get('month')
-        year = request.query_params.get('year', datetime.now().year)
-        
-        # Determine date range
-        if report_type == 'monthly' and month:
-            start_date = datetime(int(year), int(month), 1)
-            if int(month) == 12:
-                end_date = datetime(int(year) + 1, 1, 1)
-            else:
-                end_date = datetime(int(year), int(month) + 1, 1)
-        elif report_type == 'yearly':
-            start_date = datetime(int(year), 1, 1)
-            end_date = datetime(int(year) + 1, 1, 1)
-        else:
-            start_date = request.query_params.get('start_date')
-            end_date = request.query_params.get('end_date')
-            if start_date:
-                start_date = datetime.fromisoformat(start_date)
-            if end_date:
-                end_date = datetime.fromisoformat(end_date)
-        
-        # Gather comprehensive data
+        report_type, start_date, end_date, period_label = self._parse_period(request)
+        start_day = start_date.date()
+        end_day = end_date.date()
+
         sales = Sale.objects.filter(
             user=user,
             created_at__gte=start_date,
-            created_at__lt=end_date
+            created_at__lt=end_date,
         ).select_related('product', 'customer')
-        
+
         expenses = Expense.objects.filter(
             user=user,
-            date__gte=start_date.date(),
-            date__lt=end_date.date()
+            date__gte=start_day,
+            date__lt=end_day,
         )
-        
+
         credits = Credit.objects.filter(
             user=user,
             created_at__gte=start_date,
-            created_at__lt=end_date
+            created_at__lt=end_date,
         ).select_related('customer')
-        
+
         products = Product.objects.filter(user=user)
         customers = Customer.objects.filter(user=user)
-        
-        # Sales analysis
+
         total_sales = sales.aggregate(total=Sum('total_amount'))['total'] or 0
         total_profit = sum(sale.profit for sale in sales)
-        
+
         sales_by_payment = {}
         for payment_type in ['cash', 'mobile_money', 'credit']:
             sales_by_payment[payment_type] = sales.filter(
                 payment_type=payment_type
             ).aggregate(total=Sum('total_amount'))['total'] or 0
-        
-        # Top products
-        top_products = sales.values(
-            'product__name'
-        ).annotate(
+
+        top_products = sales.values('product__name').annotate(
             total_quantity=Sum('quantity'),
             total_revenue=Sum('total_amount'),
-            total_profit=Sum('total_amount')
         ).order_by('-total_revenue')[:10]
-        
-        # Expense analysis
+
         total_expenses = expenses.aggregate(total=Sum('amount'))['total'] or 0
-        
+
         expenses_by_category = {}
         for category, _ in Expense.CATEGORY_CHOICES:
             expenses_by_category[category] = expenses.filter(
                 category=category
             ).aggregate(total=Sum('amount'))['total'] or 0
-        
-        # Credit analysis
+
         total_credit_issued = credits.aggregate(total=Sum('amount_owed'))['total'] or 0
         total_credit_collected = credits.aggregate(total=Sum('amount_paid'))['total'] or 0
         outstanding_credit = credits.filter(
             status__in=['pending', 'partial', 'overdue']
         ).aggregate(total=Sum('remaining_balance'))['total'] or 0
-        
-        # Top debtors
+
         top_debtors = credits.filter(
             status__in=['pending', 'partial', 'overdue']
         ).select_related('customer').order_by('-remaining_balance')[:10]
-        
-        # Inventory analysis
+
         inventory_value = sum(p.inventory_value for p in products)
         low_stock_products = [p for p in products if p.is_low_stock]
-        
-        # Customer analysis
+
         top_customers = []
         for customer in customers:
             customer_sales = sales.filter(customer=customer)
@@ -560,22 +569,29 @@ class ComprehensiveReportView(APIView):
                     'transaction_count': customer_sales.count(),
                 })
         top_customers = sorted(top_customers, key=lambda x: x['total_purchases'], reverse=True)[:10]
-        
-        # Financial summary
+
         net_profit = total_profit - total_expenses
         profit_margin = (total_profit / total_sales * 100) if total_sales > 0 else 0
-        
+        period_days = max((end_date - start_date).days, 1)
+
         report_data = {
             'report_info': {
                 'type': report_type,
                 'period': {
                     'start': start_date.isoformat(),
                     'end': end_date.isoformat(),
-                    'label': start_date.strftime('%B %Y') if report_type == 'monthly' else f'Year {year}'
+                    'label': period_label,
                 },
-                'generated_at': datetime.now().isoformat(),
-                'business_name': user.business_name or 'Your Business',
-                'currency': user.currency,
+                'generated_at': timezone.now().isoformat(),
+                'business_name': user.business_name or user.get_full_name() or user.username,
+                'currency': user.currency or 'ZMW',
+                'address': user.address or '',
+                'phone': user.phone or '',
+                'email': user.email or '',
+                'website': user.website or '',
+                'tin': user.tin or '',
+                'vat_number': user.vat_number or '',
+                'business_registration_number': user.business_registration_number or '',
             },
             'executive_summary': {
                 'total_sales': float(total_sales),
@@ -590,16 +606,17 @@ class ComprehensiveReportView(APIView):
                 'by_payment_type': {k: float(v) for k, v in sales_by_payment.items()},
                 'top_products': [
                     {
-                        'name': item['product__name'],
-                        'quantity': item['total_quantity'],
-                        'revenue': float(item['total_revenue']),
+                        'name': item['product__name'] or 'Unknown',
+                        'quantity': item['total_quantity'] or 0,
+                        'revenue': float(item['total_revenue'] or 0),
                     }
                     for item in top_products
                 ],
-                'daily_average': float(total_sales / max((end_date - start_date).days, 1)),
+                'daily_average': float(total_sales / period_days),
             },
             'expense_analysis': {
                 'total_expenses': float(total_expenses),
+                'expense_count': expenses.count(),
                 'by_category': {k: float(v) for k, v in expenses_by_category.items()},
                 'largest_expenses': [
                     {
@@ -615,10 +632,11 @@ class ComprehensiveReportView(APIView):
                 'total_issued': float(total_credit_issued),
                 'total_collected': float(total_credit_collected),
                 'outstanding': float(outstanding_credit),
+                'credit_count': credits.count(),
                 'collection_rate': float((total_credit_collected / total_credit_issued * 100) if total_credit_issued > 0 else 0),
                 'top_debtors': [
                     {
-                        'customer': credit.customer.name,
+                        'customer': credit.customer.name if credit.customer else 'Unknown',
                         'amount_owed': float(credit.remaining_balance),
                         'due_date': credit.due_date.isoformat() if credit.due_date else None,
                         'status': credit.status,
@@ -647,7 +665,7 @@ class ComprehensiveReportView(APIView):
                 net_profit, profit_margin, outstanding_credit, len(low_stock_products)
             ),
         }
-        
+
         return Response(report_data)
     
     def generate_recommendations(self, net_profit, profit_margin, outstanding_credit, low_stock_count):

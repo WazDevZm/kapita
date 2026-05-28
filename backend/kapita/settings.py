@@ -5,6 +5,7 @@ Django settings for kapita project.
 from pathlib import Path
 from datetime import timedelta
 from decouple import config
+import dj_database_url
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -41,6 +42,7 @@ INSTALLED_APPS = [
     # Local apps
     'accounts',
     'billing',
+    'personal_finance',
     'products',
     'sales',
     'customers',
@@ -85,9 +87,19 @@ TEMPLATES = [
 WSGI_APPLICATION = 'kapita.wsgi.application'
 
 # Database
+# Priority: DATABASE_URL (Neon/Supabase/Railway) > DB_ENGINE config > local SQLite
+DATABASE_URL = config('DATABASE_URL', default='')
 DB_ENGINE = config('DB_ENGINE', default='sqlite3')
 
-if DB_ENGINE == 'sqlite3':
+if DATABASE_URL:
+    DATABASES = {
+        'default': dj_database_url.parse(
+            DATABASE_URL,
+            conn_max_age=600,
+            ssl_require=True,
+        )
+    }
+elif DB_ENGINE == 'sqlite3':
     default_sqlite_path = '/var/data/db.sqlite3' if RENDER else str(BASE_DIR / 'db.sqlite3')
     DATABASES = {
         'default': {
@@ -134,8 +146,9 @@ STATIC_URL = 'static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
-MEDIA_URL = 'media/'
-MEDIA_ROOT = BASE_DIR / 'media'
+MEDIA_URL = '/media/'
+default_media_root = '/var/data/media' if RENDER else str(BASE_DIR / 'media')
+MEDIA_ROOT = config('MEDIA_ROOT_PATH', default=default_media_root)
 
 if not DEBUG:
     SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
@@ -202,6 +215,18 @@ CORS_ALLOW_HEADERS = [
     'user-agent',
     'x-csrftoken',
     'x-requested-with',
+]
+
+# Clerk auth (optional — when set, frontend uses Clerk and API accepts Clerk session tokens)
+CLERK_SECRET_KEY = config('CLERK_SECRET_KEY', default='')
+CLERK_JWT_KEY = config('CLERK_JWT_KEY', default='')
+CLERK_AUTHORIZED_PARTIES = [
+    origin.strip()
+    for origin in config(
+        'CLERK_AUTHORIZED_PARTIES',
+        default='http://localhost:3000,http://127.0.0.1:3000,http://localhost:5173,http://127.0.0.1:5173',
+    ).split(',')
+    if origin.strip()
 ]
 
 # OpenAI / Router config (set via environment variable, do NOT commit real keys)

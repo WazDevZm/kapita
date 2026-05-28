@@ -1,6 +1,11 @@
 import { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
+import { SignUp } from '@clerk/react'
+import AuthPageLayout from '../../components/auth/AuthPageLayout'
+import { AuthFooterLinks, AuthLink } from '../../components/auth/AuthFooter'
+import { kapitaClerkAppearance } from '../../config/clerkAppearance'
 import { useAuthStore } from '../../store/authStore'
+import { isClerkEnabled } from '../../config/auth'
 import PasswordInput from '../../components/PasswordInput'
 
 export default function Register() {
@@ -17,6 +22,33 @@ export default function Register() {
     phone: '',
   })
   const [errors, setErrors] = useState({})
+
+  const signInFooter = (
+    <AuthFooterLinks
+      primary={
+        <p>
+          Already have an account? <AuthLink to="/login">Sign in</AuthLink>
+        </p>
+      }
+      secondary={<AuthLink to="/">← Back to home</AuthLink>}
+    />
+  )
+
+  if (isClerkEnabled) {
+    return (
+      <AuthPageLayout
+        title="Create your account"
+        subtitle="Start your free trial and track your business in one place"
+        footer={signInFooter}
+      >
+        <SignUp
+          routing="virtual"
+          signInUrl="/login"
+          appearance={kapitaClerkAppearance}
+        />
+      </AuthPageLayout>
+    )
+  }
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -36,151 +68,113 @@ export default function Register() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-navy-900 px-4 py-12">
-      <div className="max-w-2xl w-full space-y-8">
-        {/* Logo */}
-        <div className="text-center">
-          <div className="inline-flex items-center justify-center mb-6">
-            <img 
-              src="/logo1.png" 
-              alt="Kapita Logo" 
-              className="h-24 w-auto object-contain"
-              onError={(e) => {
-                e.target.style.display = 'none'
-                e.target.nextElementSibling.style.display = 'flex'
-              }}
+    <AuthPageLayout
+      title="Create your account"
+      subtitle="Start your free trial and track your business in one place"
+      footer={signInFooter}
+    >
+      <form onSubmit={handleSubmit} className="space-y-5">
+        <div className="space-y-5">
+          <div>
+            <label className="label">First Name</label>
+            <input
+              type="text"
+              required
+              className="input"
+              value={formData.first_name}
+              onChange={(e) => setFormData({ ...formData, first_name: e.target.value })}
             />
-            <div className="w-24 h-24 bg-primary-600 rounded-2xl items-center justify-center hidden">
-              <span className="text-white font-bold text-4xl">K</span>
-            </div>
           </div>
-          <h2 className="text-3xl font-bold text-gray-900 dark:text-white">
-            Create your account
-          </h2>
-          <p className="mt-2 text-gray-600 dark:text-gray-400">
-            Start tracking your business today
-          </p>
-        </div>
 
-        {/* Form */}
-        <div className="card">
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <label className="label">First Name</label>
-                <input
-                  type="text"
-                  required
-                  className="input"
-                  value={formData.first_name}
-                  onChange={(e) => setFormData({ ...formData, first_name: e.target.value })}
-                />
-              </div>
+          <div>
+            <label className="label">Last Name</label>
+            <input
+              type="text"
+              required
+              className="input"
+              value={formData.last_name}
+              onChange={(e) => setFormData({ ...formData, last_name: e.target.value })}
+            />
+          </div>
 
-              <div>
-                <label className="label">Last Name</label>
-                <input
-                  type="text"
-                  required
-                  className="input"
-                  value={formData.last_name}
-                  onChange={(e) => setFormData({ ...formData, last_name: e.target.value })}
-                />
-              </div>
+          <div>
+            <label className="label">Username</label>
+            <input
+              type="text"
+              required
+              className="input"
+              value={formData.username}
+              onChange={(e) => setFormData({ ...formData, username: e.target.value })}
+            />
+            {errors.username && (
+              <p className="mt-1 text-sm text-red-600">{errors.username[0]}</p>
+            )}
+          </div>
 
-              <div>
-                <label className="label">Username</label>
-                <input
-                  type="text"
-                  required
-                  className="input"
-                  value={formData.username}
-                  onChange={(e) => setFormData({ ...formData, username: e.target.value })}
-                />
-                {errors.username && (
-                  <p className="mt-1 text-sm text-red-600">{errors.username[0]}</p>
-                )}
-              </div>
+          <div>
+            <label className="label">Email</label>
+            <input
+              type="email"
+              required
+              className="input"
+              value={formData.email}
+              onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+            />
+            {errors.email && (
+              <p className="mt-1 text-sm text-red-600">{errors.email[0]}</p>
+            )}
+          </div>
 
-              <div>
-                <label className="label">Email</label>
-                <input
-                  type="email"
-                  required
-                  className="input"
-                  value={formData.email}
-                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                />
-                {errors.email && (
-                  <p className="mt-1 text-sm text-red-600">{errors.email[0]}</p>
-                )}
-              </div>
+          <div>
+            <label className="label">Business Name</label>
+            <input
+              type="text"
+              className="input"
+              value={formData.business_name}
+              onChange={(e) => setFormData({ ...formData, business_name: e.target.value })}
+            />
+          </div>
 
-              <div>
-                <label className="label">Business Name</label>
-                <input
-                  type="text"
-                  className="input"
-                  value={formData.business_name}
-                  onChange={(e) => setFormData({ ...formData, business_name: e.target.value })}
-                />
-              </div>
+          <div>
+            <label className="label">Phone</label>
+            <input
+              type="tel"
+              className="input"
+              value={formData.phone}
+              onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+            />
+          </div>
 
-              <div>
-                <label className="label">Phone</label>
-                <input
-                  type="tel"
-                  className="input"
-                  value={formData.phone}
-                  onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                />
-              </div>
+          <div>
+            <label className="label">Password</label>
+            <PasswordInput
+              value={formData.password}
+              onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+              required
+            />
+            {errors.password && (
+              <p className="mt-1 text-sm text-red-600">{errors.password[0]}</p>
+            )}
+          </div>
 
-              <div>
-                <label className="label">Password</label>
-                <PasswordInput
-                  value={formData.password}
-                  onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                  required
-                />
-                {errors.password && (
-                  <p className="mt-1 text-sm text-red-600">{errors.password[0]}</p>
-                )}
-              </div>
-
-              <div>
-                <label className="label">Confirm Password</label>
-                <PasswordInput
-                  value={formData.password2}
-                  onChange={(e) => setFormData({ ...formData, password2: e.target.value })}
-                  required
-                  placeholder="Confirm Password"
-                />
-                {errors.password2 && (
-                  <p className="mt-1 text-sm text-red-600">{errors.password2[0]}</p>
-                )}
-              </div>
-            </div>
-
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full btn btn-primary"
-            >
-              {loading ? 'Creating account...' : 'Create account'}
-            </button>
-          </form>
-
-          <div className="mt-6 text-center">
-            <p className="text-sm text-gray-600 dark:text-gray-400">
-              Already have an account?{' '}
-              <Link to="/login" className="text-primary-600 hover:text-primary-700 font-medium">
-                Sign in
-              </Link>
-            </p>
+          <div>
+            <label className="label">Confirm Password</label>
+            <PasswordInput
+              value={formData.password2}
+              onChange={(e) => setFormData({ ...formData, password2: e.target.value })}
+              required
+              placeholder="Confirm Password"
+            />
+            {errors.password2 && (
+              <p className="mt-1 text-sm text-red-600">{errors.password2[0]}</p>
+            )}
           </div>
         </div>
-      </div>
-    </div>
+
+        <button type="submit" disabled={loading} className="btn btn-primary w-full">
+          {loading ? 'Creating account...' : 'Create account'}
+        </button>
+      </form>
+    </AuthPageLayout>
   )
 }

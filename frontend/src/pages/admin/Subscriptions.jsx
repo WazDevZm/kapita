@@ -74,13 +74,13 @@ export default function AdminSubscriptions() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Subscription Management</h1>
-        <p className="mt-1 text-gray-600 dark:text-gray-400">Extend, revoke, and view subscription history per user.</p>
+        <h1 className="text-2xl font-bold text-gray-900">Subscription Management</h1>
+        <p className="mt-1 text-gray-600">Extend, revoke, and view subscription history per user.</p>
       </div>
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         <Card className="lg:col-span-1">
-          <h2 className="mb-4 text-lg font-semibold text-gray-900 dark:text-white">Select user</h2>
+          <h2 className="mb-4 text-lg font-semibold text-gray-900">Select user</h2>
           <select className="input" value={selectedUserId} onChange={handleUserChange}>
             <option value="">Choose a user…</option>
             {users.map((u) => (
@@ -91,7 +91,7 @@ export default function AdminSubscriptions() {
           </select>
 
           {selectedUser && (
-            <div className="mt-4 space-y-2 rounded-xl bg-gray-50 p-4 text-sm dark:bg-navy-800">
+            <div className="mt-4 space-y-2 rounded-xl bg-gray-50 p-4 text-sm">
               <p><span className="font-medium">Email:</span> {selectedUser.email}</p>
               <p><span className="font-medium">Status:</span>{' '}
                 <span className={`rounded-full px-2 py-0.5 text-xs font-semibold ${badgeClass(selectedUser.access_status)}`}>
@@ -106,8 +106,8 @@ export default function AdminSubscriptions() {
           )}
 
           {selectedUserId && (
-            <div className="mt-6 space-y-3 border-t border-gray-200 pt-4 dark:border-navy-700">
-              <h3 className="font-medium text-gray-900 dark:text-white">Manual actions</h3>
+            <div className="mt-6 space-y-3 border-t border-gray-200 pt-4">
+              <h3 className="font-medium text-gray-900">Manual actions</h3>
               <input className="input" type="number" min="1" value={extendDays} onChange={(e) => setExtendDays(e.target.value)} placeholder="Days to extend" />
               <textarea className="input" rows={2} value={extendNotes} onChange={(e) => setExtendNotes(e.target.value)} placeholder="Notes (optional)" />
               <button type="button" disabled={saving} onClick={extendSubscription} className="btn btn-primary w-full">
@@ -121,24 +121,24 @@ export default function AdminSubscriptions() {
         </Card>
 
         <Card className="lg:col-span-2">
-          <h2 className="mb-4 text-lg font-semibold text-gray-900 dark:text-white">Subscription history</h2>
+          <h2 className="mb-4 text-lg font-semibold text-gray-900">Subscription history</h2>
           {!selectedUserId ? (
-            <p className="text-sm text-gray-500 dark:text-gray-400">Select a user to view history.</p>
+            <p className="text-sm text-gray-500">Select a user to view history.</p>
           ) : history.length === 0 ? (
-            <p className="text-sm text-gray-500 dark:text-gray-400">No subscription records yet.</p>
+            <p className="text-sm text-gray-500">No subscription records yet.</p>
           ) : (
             <div className="space-y-3">
               {history.map((entry) => (
-                <div key={entry.id} className="rounded-xl border border-gray-200 p-4 dark:border-navy-700">
+                <div key={entry.id} className="rounded-xl border border-gray-200 p-4">
                   <div className="flex flex-wrap items-center justify-between gap-2">
-                    <p className="font-medium text-gray-900 dark:text-white">
+                    <p className="font-medium text-gray-900">
                       {new Date(entry.start_date).toLocaleDateString()} → {new Date(entry.end_date).toLocaleDateString()}
                     </p>
                     <span className={`rounded-full px-3 py-1 text-xs font-semibold ${badgeClass(entry.status)}`}>
                       {formatStatus(entry.status)}
                     </span>
                   </div>
-                  {entry.notes && <p className="mt-2 text-sm text-gray-600 dark:text-gray-300">{entry.notes}</p>}
+                  {entry.notes && <p className="mt-2 text-sm text-gray-600">{entry.notes}</p>}
                   <p className="mt-1 text-xs text-gray-500">Payment ID: {entry.source_payment_id || 'manual'}</p>
                 </div>
               ))}

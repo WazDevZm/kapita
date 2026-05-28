@@ -1,8 +1,12 @@
 import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom'
 import { useEffect } from 'react'
 import { useAuthStore } from './store/authStore'
+import { isClerkEnabled } from './config/auth'
+import ClerkAuthBridge from './components/ClerkAuthBridge'
+import { getPostAuthPath } from './utils/postAuthPath'
 import Layout from './components/Layout'
 import Loading from './components/Loading'
+import PostAuthRedirect from './components/PostAuthRedirect'
 import Landing from './pages/Landing'
 import Login from './pages/auth/Login'
 import Register from './pages/auth/Register'
@@ -19,6 +23,7 @@ import Settings from './pages/Settings'
 import Projections from './pages/Projections'
 import Chat from './pages/Chat'
 import Billing from './pages/Billing'
+import PersonalFinance from './pages/personal/PersonalFinance'
 import AdminLogin from './pages/admin/Login'
 import AdminLayout from './components/AdminLayout'
 import AdminOverview from './pages/admin/Overview'
@@ -55,32 +60,83 @@ function AdminArea({ children }) {
   return children
 }
 
-function App() {
-  const { isAuthenticated, hydrateSession, sessionLoading, user } = useAuthStore()
-
-  useEffect(() => {
-    hydrateSession()
-  }, [hydrateSession])
+function AuthGate({ children }) {
+  const { isAuthenticated, user, sessionLoading } = useAuthStore()
 
   if (sessionLoading) {
-    return <Loading fullScreen />
+    return <Loading fullScreen message="Loading your workspace…" />
   }
 
-  return (
-    <Router>
-      <Routes>
-        {/* Landing page */}
-        <Route path="/" element={<Landing />} />
-        
-        {/* Public routes */}
-        <Route path="/login" element={!isAuthenticated ? <Login /> : user?.is_staff ? <Navigate to="/admin/overview" replace /> : <Navigate to={['expired', 'pending_payment_verification'].includes(user?.access_status) ? '/app/billing' : '/app/dashboard'} replace />} />
-        <Route path="/register" element={!isAuthenticated ? <Register /> : user?.is_staff ? <Navigate to="/admin/overview" replace /> : <Navigate to={['expired', 'pending_payment_verification'].includes(user?.access_status) ? '/app/billing' : '/app/dashboard'} replace />} />
-        <Route path="/admin/login" element={!isAuthenticated ? <AdminLogin /> : user?.is_staff ? <Navigate to="/admin/overview" replace /> : <Navigate to={['expired', 'pending_payment_verification'].includes(user?.access_status) ? '/app/billing' : '/app/dashboard'} replace />} />
+  if (!isAuthenticated || !user) {
+    return <Navigate to="/login" replace />
+  }
 
-        {/* Admin routes */}
+  return children
+}
+
+function PublicAuthRoute({ children }) {
+  const { isAuthenticated, user, sessionLoading } = useAuthStore()
+
+  if (sessionLoading) {
+    return <Loading fullScreen message="Loading…" />
+  }
+
+  if (isAuthenticated && user) {
+    return <Navigate to={getPostAuthPath(user)} replace />
+  }
+
+  return children
+}
+
+function App() {
+  const { hydrateSession } = useAuthStore()
+
+  useEffect(() => {
+    if (!isClerkEnabled) {
+      hydrateSession()
+    }
+  }, [hydrateSession])
+
+  const routes = (
+    <>
+      <PostAuthRedirect />
+      <Routes>
+        <Route path="/" element={<Landing />} />
+
+        <Route
+          path="/login"
+          element={
+            <PublicAuthRoute>
+              <Login />
+            </PublicAuthRoute>
+          }
+        />
+        <Route
+          path="/register"
+          element={
+            <PublicAuthRoute>
+              <Register />
+            </PublicAuthRoute>
+          }
+        />
+        <Route
+          path="/admin/login"
+          element={
+            <PublicAuthRoute>
+              <AdminLogin />
+            </PublicAuthRoute>
+          }
+        />
+
         <Route
           path="/admin"
-          element={isAuthenticated ? <AdminArea><AdminLayout /></AdminArea> : <Navigate to="/admin/login" replace />}
+          element={
+            <AuthGate>
+              <AdminArea>
+                <AdminLayout />
+              </AdminArea>
+            </AuthGate>
+          }
         >
           <Route index element={<Navigate to="/admin/overview" replace />} />
           <Route path="overview" element={<AdminOverview />} />
@@ -90,9 +146,17 @@ function App() {
           <Route path="activity" element={<AdminActivity />} />
         </Route>
 
-        {/* Protected routes */}
-        <Route path="/app" element={isAuthenticated ? <UserArea><Layout /></UserArea> : <Navigate to="/login" />}> 
-          <Route index element={<Navigate to="/app/dashboard" />} />
+        <Route
+          path="/app"
+          element={
+            <AuthGate>
+              <UserArea>
+                <Layout />
+              </UserArea>
+            </AuthGate>
+          }
+        >
+          <Route index element={<Navigate to="/app/dashboard" replace />} />
           <Route path="dashboard" element={<Dashboard />} />
           <Route path="products" element={<Products />} />
           <Route path="sales" element={<Sales />} />
@@ -106,11 +170,17 @@ function App() {
           <Route path="chat" element={<Chat />} />
           <Route path="settings" element={<Settings />} />
           <Route path="billing" element={<Billing />} />
+          <Route path="personal" element={<PersonalFinance />} />
         </Route>
 
-        {/* 404 */}
         <Route path="*" element={<NotFound />} />
       </Routes>
+    </>
+  )
+
+  return (
+    <Router>
+      {isClerkEnabled ? <ClerkAuthBridge>{routes}</ClerkAuthBridge> : routes}
     </Router>
   )
 }

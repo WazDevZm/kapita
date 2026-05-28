@@ -1,4 +1,7 @@
 import { Link } from 'react-router-dom'
+import LandingAuthNav from '../components/LandingAuthNav'
+import LandingAuthNavLegacy from '../components/LandingAuthNavLegacy'
+import { isClerkEnabled } from '../config/auth'
 import {
   BarChart3,
   Package,
@@ -67,15 +70,7 @@ function FloatingNavbar() {
           </div>
 
           <div className="flex items-center gap-1 sm:gap-2">
-            <Link to="/login" className="landing-btn-ghost hidden sm:inline-flex">
-              Sign In
-            </Link>
-            <Link to="/login" className="landing-btn-ghost px-3 py-2 sm:hidden" aria-label="Sign In">
-              <LogIn className="h-4 w-4" />
-            </Link>
-            <Link to="/register" className="landing-btn-nav-cta">
-              Get Started
-            </Link>
+            {isClerkEnabled ? <LandingAuthNav /> : <LandingAuthNavLegacy />}
           </div>
         </nav>
       </div>

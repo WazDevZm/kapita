@@ -186,8 +186,8 @@ export default function Sales() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Sales</h1>
-          <p className="text-gray-600 dark:text-gray-400">Track all your sales transactions</p>
+          <h1 className="text-2xl font-bold text-gray-900">Sales</h1>
+          <p className="text-gray-600">Track all your sales transactions</p>
         </div>
         <button
           onClick={() => setShowModal(true)}
@@ -324,8 +324,8 @@ export default function Sales() {
           </div>
 
           {formData.quantity && formData.unit_price && (
-            <div className="p-4 bg-gray-50 dark:bg-navy-700 rounded-lg">
-              <p className="text-lg font-semibold text-gray-900 dark:text-white">
+            <div className="p-4 bg-gray-50 rounded-lg">
+              <p className="text-lg font-semibold text-gray-900">
                 Total: ZMW {(formData.quantity * formData.unit_price).toLocaleString()}
               </p>
             </div>

@@ -88,19 +88,19 @@ export default function Dashboard() {
       {/* Header */}
       <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Dashboard</h1>
-          <p className="text-gray-600 dark:text-gray-400">Overview of your business performance</p>
+          <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
+          <p className="text-gray-600">Overview of your business performance</p>
         </div>
       </div>
 
       {/* Alerts */}
       {(alerts?.low_stock_count > 0 || alerts?.overdue_credits > 0 || alerts?.negative_cashflow) && (
-        <Card className="bg-yellow-50 dark:bg-yellow-900/20 border-yellow-200 dark:border-yellow-800">
+        <Card className="bg-yellow-50 border-yellow-200">
           <div className="flex items-start space-x-3">
-            <AlertTriangle className="w-5 h-5 text-yellow-600 dark:text-yellow-400 mt-0.5" />
+            <AlertTriangle className="w-5 h-5 text-yellow-600 mt-0.5" />
             <div className="flex-1">
-              <h3 className="font-semibold text-yellow-900 dark:text-yellow-100">Alerts</h3>
-              <ul className="mt-2 space-y-1 text-sm text-yellow-800 dark:text-yellow-200">
+              <h3 className="font-semibold text-yellow-900">Alerts</h3>
+              <ul className="mt-2 space-y-1 text-sm text-yellow-800">
                 {alerts.low_stock_count > 0 && (
                   <li>• {alerts.low_stock_count} product(s) are low on stock</li>
                 )}
@@ -147,39 +147,39 @@ export default function Dashboard() {
       <Card>
         <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div>
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Live business records</h3>
-            <p className="text-sm text-gray-500 dark:text-gray-400">
+            <h3 className="text-lg font-semibold text-gray-900">Live business records</h3>
+            <p className="text-sm text-gray-500">
               This shows how much real business data is currently powering the dashboard.
             </p>
           </div>
-          <div className="text-3xl font-bold text-primary-600 dark:text-primary-400">
+          <div className="text-3xl font-bold text-primary-600">
             {recordCounts.total || 0}
           </div>
         </div>
         <div className="mt-4 grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-6">
-          <div className="rounded-xl bg-gray-50 dark:bg-navy-800 p-3">
-            <p className="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">Sales</p>
-            <p className="mt-1 text-lg font-semibold text-gray-900 dark:text-white">{recordCounts.sales || 0}</p>
+          <div className="rounded-xl bg-gray-50 p-3">
+            <p className="text-xs uppercase tracking-wide text-gray-500">Sales</p>
+            <p className="mt-1 text-lg font-semibold text-gray-900">{recordCounts.sales || 0}</p>
           </div>
-          <div className="rounded-xl bg-gray-50 dark:bg-navy-800 p-3">
-            <p className="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">Products</p>
-            <p className="mt-1 text-lg font-semibold text-gray-900 dark:text-white">{recordCounts.products || 0}</p>
+          <div className="rounded-xl bg-gray-50 p-3">
+            <p className="text-xs uppercase tracking-wide text-gray-500">Products</p>
+            <p className="mt-1 text-lg font-semibold text-gray-900">{recordCounts.products || 0}</p>
           </div>
-          <div className="rounded-xl bg-gray-50 dark:bg-navy-800 p-3">
-            <p className="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">Customers</p>
-            <p className="mt-1 text-lg font-semibold text-gray-900 dark:text-white">{recordCounts.customers || 0}</p>
+          <div className="rounded-xl bg-gray-50 p-3">
+            <p className="text-xs uppercase tracking-wide text-gray-500">Customers</p>
+            <p className="mt-1 text-lg font-semibold text-gray-900">{recordCounts.customers || 0}</p>
           </div>
-          <div className="rounded-xl bg-gray-50 dark:bg-navy-800 p-3">
-            <p className="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">Expenses</p>
-            <p className="mt-1 text-lg font-semibold text-gray-900 dark:text-white">{recordCounts.expenses || 0}</p>
+          <div className="rounded-xl bg-gray-50 p-3">
+            <p className="text-xs uppercase tracking-wide text-gray-500">Expenses</p>
+            <p className="mt-1 text-lg font-semibold text-gray-900">{recordCounts.expenses || 0}</p>
           </div>
-          <div className="rounded-xl bg-gray-50 dark:bg-navy-800 p-3">
-            <p className="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">Credits</p>
-            <p className="mt-1 text-lg font-semibold text-gray-900 dark:text-white">{recordCounts.credits || 0}</p>
+          <div className="rounded-xl bg-gray-50 p-3">
+            <p className="text-xs uppercase tracking-wide text-gray-500">Credits</p>
+            <p className="mt-1 text-lg font-semibold text-gray-900">{recordCounts.credits || 0}</p>
           </div>
-          <div className="rounded-xl bg-gray-50 dark:bg-navy-800 p-3">
-            <p className="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">Reinvestments</p>
-            <p className="mt-1 text-lg font-semibold text-gray-900 dark:text-white">{recordCounts.reinvestments || 0}</p>
+          <div className="rounded-xl bg-gray-50 p-3">
+            <p className="text-xs uppercase tracking-wide text-gray-500">Reinvestments</p>
+            <p className="mt-1 text-lg font-semibold text-gray-900">{recordCounts.reinvestments || 0}</p>
           </div>
         </div>
       </Card>
@@ -215,21 +215,21 @@ export default function Dashboard() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Revenue Trend */}
         <Card>
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">
             Revenue Trend (Last 30 Days)
           </h3>
           {hasDailySalesData ? (
             <ResponsiveContainer width="100%" height={300}>
               <LineChart data={dailySalesChartData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+                <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
                 <XAxis dataKey="dayLabel" stroke="#9ca3af" />
                 <YAxis stroke="#9ca3af" />
                 <Tooltip 
                   contentStyle={{ 
-                    backgroundColor: '#1e293b', 
-                    border: 'none',
+                    backgroundColor: '#ffffff',
+                    border: '1px solid #e5e7eb',
                     borderRadius: '8px',
-                    color: '#fff'
+                    color: '#111827',
                   }} 
                 />
                 <Legend />
@@ -243,7 +243,7 @@ export default function Dashboard() {
               </LineChart>
             </ResponsiveContainer>
           ) : (
-            <div className="flex h-[300px] items-center justify-center rounded-xl border border-dashed border-gray-300 dark:border-navy-700 text-sm text-gray-500 dark:text-gray-400">
+            <div className="flex h-[300px] items-center justify-center rounded-xl border border-dashed border-gray-300 text-sm text-gray-500">
               No sales data yet. Add sales to populate this chart.
             </div>
           )}
@@ -251,7 +251,7 @@ export default function Dashboard() {
 
         {/* Expenses by Category */}
         <Card>
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">
             Expenses by Category
           </h3>
           {hasExpenseData ? (
@@ -273,16 +273,16 @@ export default function Dashboard() {
                 </Pie>
                 <Tooltip 
                   contentStyle={{ 
-                    backgroundColor: '#1e293b', 
-                    border: 'none',
+                    backgroundColor: '#ffffff',
+                    border: '1px solid #e5e7eb',
                     borderRadius: '8px',
-                    color: '#fff'
+                    color: '#111827',
                   }} 
                 />
               </PieChart>
             </ResponsiveContainer>
           ) : (
-            <div className="flex h-[300px] items-center justify-center rounded-xl border border-dashed border-gray-300 dark:border-navy-700 text-sm text-gray-500 dark:text-gray-400">
+            <div className="flex h-[300px] items-center justify-center rounded-xl border border-dashed border-gray-300 text-sm text-gray-500">
               No expense categories yet. Add expenses to populate this chart.
             </div>
           )}
@@ -293,26 +293,26 @@ export default function Dashboard() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Recent Sales */}
         <Card>
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">
             Recent Sales
           </h3>
           <div className="space-y-3">
             {recent_activity?.sales?.slice(0, 5).map((sale) => (
-              <div key={sale.id} className="flex items-center justify-between py-2 border-b border-gray-200 dark:border-navy-700 last:border-0">
+              <div key={sale.id} className="flex items-center justify-between py-2 border-b border-gray-200 last:border-0">
                 <div className="flex items-center space-x-3">
-                  <div className="p-2 bg-green-50 dark:bg-green-900/20 rounded-lg">
-                    <ShoppingCart className="w-4 h-4 text-green-600 dark:text-green-400" />
+                  <div className="p-2 bg-green-50 rounded-lg">
+                    <ShoppingCart className="w-4 h-4 text-green-600" />
                   </div>
                   <div>
-                    <p className="font-medium text-gray-900 dark:text-white">
+                    <p className="font-medium text-gray-900">
                       {sale.product_details?.name}
                     </p>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">
+                    <p className="text-sm text-gray-500">
                       {new Date(sale.created_at).toLocaleDateString()}
                     </p>
                   </div>
                 </div>
-                <span className="font-semibold text-green-600 dark:text-green-400">
+                <span className="font-semibold text-green-600">
                   +ZMW {sale.total_amount}
                 </span>
               </div>
@@ -322,26 +322,26 @@ export default function Dashboard() {
 
         {/* Recent Expenses */}
         <Card>
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">
             Recent Expenses
           </h3>
           <div className="space-y-3">
             {recent_activity?.expenses?.slice(0, 5).map((expense) => (
-              <div key={expense.id} className="flex items-center justify-between py-2 border-b border-gray-200 dark:border-navy-700 last:border-0">
+              <div key={expense.id} className="flex items-center justify-between py-2 border-b border-gray-200 last:border-0">
                 <div className="flex items-center space-x-3">
-                  <div className="p-2 bg-red-50 dark:bg-red-900/20 rounded-lg">
-                    <TrendingDown className="w-4 h-4 text-red-600 dark:text-red-400" />
+                  <div className="p-2 bg-red-50 rounded-lg">
+                    <TrendingDown className="w-4 h-4 text-red-600" />
                   </div>
                   <div>
-                    <p className="font-medium text-gray-900 dark:text-white">
+                    <p className="font-medium text-gray-900">
                       {expense.title}
                     </p>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">
+                    <p className="text-sm text-gray-500">
                       {new Date(expense.date).toLocaleDateString()}
                     </p>
                   </div>
                 </div>
-                <span className="font-semibold text-red-600 dark:text-red-400">
+                <span className="font-semibold text-red-600">
                   -ZMW {expense.amount}
                 </span>
               </div>

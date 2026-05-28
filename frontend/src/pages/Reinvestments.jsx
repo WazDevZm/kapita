@@ -72,7 +72,7 @@ export default function Reinvestments() {
     { 
       header: 'Purpose', 
       render: (row) => (
-        <span className="px-2 py-1 rounded text-xs font-medium bg-primary-100 dark:bg-primary-900/20 text-primary-800 dark:text-primary-400">
+        <span className="px-2 py-1 rounded text-xs font-medium bg-primary-100 text-primary-800">
           {row.purpose.replace('_', ' ')}
         </span>
       )
@@ -106,8 +106,8 @@ export default function Reinvestments() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Reinvestments</h1>
-          <p className="text-gray-600 dark:text-gray-400">Track money reinvested into business</p>
+          <h1 className="text-2xl font-bold text-gray-900">Reinvestments</h1>
+          <p className="text-gray-600">Track money reinvested into business</p>
         </div>
         <button
           onClick={() => setShowModal(true)}
@@ -207,7 +207,7 @@ export default function Reinvestments() {
               value={formData.expected_margin}
               onChange={(e) => setFormData({ ...formData, expected_margin: e.target.value })}
             />
-            <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+            <p className="mt-1 text-xs text-gray-500">
               Expected profit percentage from this reinvestment
             </p>
           </div>
@@ -223,12 +223,12 @@ export default function Reinvestments() {
           </div>
 
           {formData.amount && formData.expected_margin && (
-            <div className="p-4 bg-primary-50 dark:bg-primary-900/20 rounded-lg">
-              <p className="text-sm text-gray-600 dark:text-gray-400">Projected Profit</p>
-              <p className="text-lg font-semibold text-primary-600 dark:text-primary-400">
+            <div className="p-4 bg-primary-50 rounded-lg">
+              <p className="text-sm text-gray-600">Projected Profit</p>
+              <p className="text-lg font-semibold text-primary-600">
                 ZMW {(formData.amount * (formData.expected_margin / 100)).toLocaleString()}
               </p>
-              <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">Projected Return</p>
+              <p className="text-sm text-gray-600 mt-2">Projected Return</p>
               <p className="text-lg font-semibold text-green-600">
                 ZMW {(parseFloat(formData.amount) + (formData.amount * (formData.expected_margin / 100))).toLocaleString()}
               </p>

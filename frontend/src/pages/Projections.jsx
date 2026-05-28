@@ -66,8 +66,8 @@ export default function Projections() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Business Projections</h1>
-          <p className="text-gray-600 dark:text-gray-400">Forecast your business performance</p>
+          <h1 className="text-2xl font-bold text-gray-900">Business Projections</h1>
+          <p className="text-gray-600">Forecast your business performance</p>
         </div>
         
         <div className="flex items-center space-x-2">
@@ -89,8 +89,8 @@ export default function Projections() {
       {insights && (
         <Card className={`${
           insights.is_profitable 
-            ? 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800' 
-            : 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800'
+            ? 'bg-green-50 border-green-200' 
+            : 'bg-red-50 border-red-200'
         }`}>
           <div className="flex items-start space-x-3">
             <AlertCircle className={`w-5 h-5 mt-0.5 ${
@@ -98,12 +98,12 @@ export default function Projections() {
             }`} />
             <div>
               <h3 className={`font-semibold ${
-                insights.is_profitable ? 'text-green-900 dark:text-green-100' : 'text-red-900 dark:text-red-100'
+                insights.is_profitable ? 'text-green-900' : 'text-red-900'
               }`}>
                 {insights.is_profitable ? 'Profitable Projection' : 'Loss Projection'}
               </h3>
               <p className={`text-sm mt-1 ${
-                insights.is_profitable ? 'text-green-800 dark:text-green-200' : 'text-red-800 dark:text-red-200'
+                insights.is_profitable ? 'text-green-800' : 'text-red-800'
               }`}>
                 Based on current trends, your business is projected to {insights.is_profitable ? 'make' : 'lose'} ZMW {Math.abs(projections_30_days?.projected_profit || 0).toLocaleString()} over the next {timeframe === 'monthly' ? 'month' : `${timeframe} days`}.
                 {insights.profit_margin > 0 && ` Profit margin: ${insights.profit_margin.toFixed(1)}%`}
@@ -115,7 +115,7 @@ export default function Projections() {
 
       {/* Current Performance */}
       <div>
-        <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">Current Performance</h2>
+        <h2 className="text-xl font-semibold text-gray-900 mb-4">Current Performance</h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <StatCard
             title="Total Sales"
@@ -140,21 +140,21 @@ export default function Projections() {
 
       {/* Averages */}
       <div>
-        <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">Average Metrics</h2>
+        <h2 className="text-xl font-semibold text-gray-900 mb-4">Average Metrics</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <Card>
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600 dark:text-gray-400">Average Transaction</p>
-                <p className="text-2xl font-bold text-gray-900 dark:text-white mt-1">
+                <p className="text-sm text-gray-600">Average Transaction</p>
+                <p className="text-2xl font-bold text-gray-900 mt-1">
                   ZMW {averages?.avg_transaction?.toLocaleString() || 0}
                 </p>
-                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                <p className="text-xs text-gray-500 mt-1">
                   Based on {current_metrics?.sales_count || 0} transactions
                 </p>
               </div>
-              <div className="p-3 bg-green-50 dark:bg-green-900/20 rounded-lg">
-                <TrendingUp className="w-6 h-6 text-green-600 dark:text-green-400" />
+              <div className="p-3 bg-green-50 rounded-lg">
+                <TrendingUp className="w-6 h-6 text-green-600" />
               </div>
             </div>
           </Card>
@@ -162,16 +162,16 @@ export default function Projections() {
           <Card>
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600 dark:text-gray-400">Average Expense</p>
-                <p className="text-2xl font-bold text-gray-900 dark:text-white mt-1">
+                <p className="text-sm text-gray-600">Average Expense</p>
+                <p className="text-2xl font-bold text-gray-900 mt-1">
                   ZMW {averages?.avg_expense?.toLocaleString() || 0}
                 </p>
-                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                <p className="text-xs text-gray-500 mt-1">
                   Based on {current_metrics?.expense_count || 0} expenses
                 </p>
               </div>
-              <div className="p-3 bg-red-50 dark:bg-red-900/20 rounded-lg">
-                <DollarSign className="w-6 h-6 text-red-600 dark:text-red-400" />
+              <div className="p-3 bg-red-50 rounded-lg">
+                <DollarSign className="w-6 h-6 text-red-600" />
               </div>
             </div>
           </Card>
@@ -180,7 +180,7 @@ export default function Projections() {
 
       {/* Projections */}
       <div>
-        <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
+        <h2 className="text-xl font-semibold text-gray-900 mb-4">
           {timeframe === 'monthly' ? 'Monthly' : `${timeframe}-Day`} Projections
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -213,30 +213,30 @@ export default function Projections() {
 
       {/* Expected Income */}
       <Card>
-        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+        <h3 className="text-lg font-semibold text-gray-900 mb-4">
           Expected Total Income
         </h3>
         <div className="space-y-3">
           <div className="flex justify-between items-center">
-            <span className="text-gray-600 dark:text-gray-400">Projected Revenue</span>
-            <span className="font-semibold text-gray-900 dark:text-white">
+            <span className="text-gray-600">Projected Revenue</span>
+            <span className="font-semibold text-gray-900">
               ZMW {projections_30_days?.projected_revenue?.toLocaleString() || 0}
             </span>
           </div>
           <div className="flex justify-between items-center">
-            <span className="text-gray-600 dark:text-gray-400">Outstanding Credit Collection</span>
-            <span className="font-semibold text-gray-900 dark:text-white">
+            <span className="text-gray-600">Outstanding Credit Collection</span>
+            <span className="font-semibold text-gray-900">
               ZMW {projections_30_days?.outstanding_credit?.toLocaleString() || 0}
             </span>
           </div>
-          <div className="pt-3 border-t border-gray-200 dark:border-navy-700">
+          <div className="pt-3 border-t border-gray-200">
             <div className="flex justify-between items-center">
-              <span className="font-semibold text-gray-900 dark:text-white">Expected Total Income</span>
-              <span className="font-bold text-primary-600 dark:text-primary-400 text-xl">
+              <span className="font-semibold text-gray-900">Expected Total Income</span>
+              <span className="font-bold text-primary-600 text-xl">
                 ZMW {projections_30_days?.expected_income?.toLocaleString() || 0}
               </span>
             </div>
-            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+            <p className="text-xs text-gray-500 mt-1">
               If all outstanding credits are collected
             </p>
           </div>
@@ -245,21 +245,21 @@ export default function Projections() {
 
       {/* Sales Trend */}
       <Card>
-        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+        <h3 className="text-lg font-semibold text-gray-900 mb-4">
           Sales Trend (Last 30 Days)
         </h3>
         {hasTrendData ? (
           <ResponsiveContainer width="100%" height={300}>
             <LineChart data={chartData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+              <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
               <XAxis dataKey="dayLabel" stroke="#9ca3af" />
               <YAxis stroke="#9ca3af" />
               <Tooltip 
                 contentStyle={{ 
-                  backgroundColor: '#1e293b', 
-                  border: 'none',
+                  backgroundColor: '#ffffff',
+                  border: '1px solid #e5e7eb',
                   borderRadius: '8px',
-                  color: '#fff'
+                  color: '#111827',
                 }} 
               />
               <Legend />
@@ -273,7 +273,7 @@ export default function Projections() {
             </LineChart>
           </ResponsiveContainer>
         ) : (
-          <div className="flex h-[300px] items-center justify-center rounded-xl border border-dashed border-gray-300 dark:border-navy-700 text-sm text-gray-500 dark:text-gray-400">
+          <div className="flex h-[300px] items-center justify-center rounded-xl border border-dashed border-gray-300 text-sm text-gray-500">
             No sales trend data yet. Create sales to populate this chart.
           </div>
         )}
@@ -281,7 +281,7 @@ export default function Projections() {
 
       {/* Recommendations */}
       <Card>
-        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+        <h3 className="text-lg font-semibold text-gray-900 mb-4">
           Recommendations
         </h3>
         <div className="space-y-3">
@@ -289,13 +289,13 @@ export default function Projections() {
             <>
               <div className="flex items-start space-x-2">
                 <div className="w-2 h-2 bg-green-500 rounded-full mt-2" />
-                <p className="text-gray-700 dark:text-gray-300">
+                <p className="text-gray-700">
                   Your business is on a profitable trajectory. Consider reinvesting some profits to grow further.
                 </p>
               </div>
               <div className="flex items-start space-x-2">
                 <div className="w-2 h-2 bg-green-500 rounded-full mt-2" />
-                <p className="text-gray-700 dark:text-gray-300">
+                <p className="text-gray-700">
                   Focus on collecting outstanding credits to improve cash flow by ZMW {insights?.credit_recovery_impact?.toLocaleString()}.
                 </p>
               </div>
@@ -304,13 +304,13 @@ export default function Projections() {
             <>
               <div className="flex items-start space-x-2">
                 <div className="w-2 h-2 bg-red-500 rounded-full mt-2" />
-                <p className="text-gray-700 dark:text-gray-300">
+                <p className="text-gray-700">
                   Review your expenses and identify areas where you can reduce costs.
                 </p>
               </div>
               <div className="flex items-start space-x-2">
                 <div className="w-2 h-2 bg-red-500 rounded-full mt-2" />
-                <p className="text-gray-700 dark:text-gray-300">
+                <p className="text-gray-700">
                   Consider strategies to increase sales volume or average transaction value.
                 </p>
               </div>
@@ -318,7 +318,7 @@ export default function Projections() {
           )}
           <div className="flex items-start space-x-2">
             <div className="w-2 h-2 bg-blue-500 rounded-full mt-2" />
-            <p className="text-gray-700 dark:text-gray-300">
+            <p className="text-gray-700">
               Monitor your daily sales trend and adjust your strategy based on patterns.
             </p>
           </div>

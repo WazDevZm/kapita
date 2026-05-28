@@ -61,13 +61,13 @@ export default function Analytics() {
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Analytics</h1>
-        <p className="text-gray-600 dark:text-gray-400">Advanced business insights and metrics</p>
+        <h1 className="text-2xl font-bold text-gray-900">Analytics</h1>
+        <p className="text-gray-600">Advanced business insights and metrics</p>
       </div>
 
       {/* Capital Breakdown */}
       <div>
-        <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">Capital Analysis</h2>
+        <h2 className="text-xl font-semibold text-gray-900 mb-4">Capital Analysis</h2>
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
           <StatCard
             title="Current Capital"
@@ -98,26 +98,26 @@ export default function Analytics() {
 
       {/* Cashflow Analysis */}
       <div>
-        <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">Cashflow Analysis</h2>
+        <h2 className="text-xl font-semibold text-gray-900 mb-4">Cashflow Analysis</h2>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <Card>
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Money In</h3>
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">Money In</h3>
             <div className="space-y-3">
               <div className="flex justify-between items-center">
-                <span className="text-gray-600 dark:text-gray-400">Sales Revenue</span>
+                <span className="text-gray-600">Sales Revenue</span>
                 <span className="font-semibold text-green-600">
                   ZMW {cashflow?.money_in?.sales?.toLocaleString() || 0}
                 </span>
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-gray-600 dark:text-gray-400">Credit Payments</span>
+                <span className="text-gray-600">Credit Payments</span>
                 <span className="font-semibold text-green-600">
                   ZMW {cashflow?.money_in?.credit_payments?.toLocaleString() || 0}
                 </span>
               </div>
-              <div className="pt-3 border-t border-gray-200 dark:border-navy-700">
+              <div className="pt-3 border-t border-gray-200">
                 <div className="flex justify-between items-center">
-                  <span className="font-semibold text-gray-900 dark:text-white">Total In</span>
+                  <span className="font-semibold text-gray-900">Total In</span>
                   <span className="font-bold text-green-600 text-lg">
                     ZMW {cashflow?.money_in?.total?.toLocaleString() || 0}
                   </span>
@@ -127,29 +127,29 @@ export default function Analytics() {
           </Card>
 
           <Card>
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Money Out</h3>
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">Money Out</h3>
             <div className="space-y-3">
               <div className="flex justify-between items-center">
-                <span className="text-gray-600 dark:text-gray-400">Expenses</span>
+                <span className="text-gray-600">Expenses</span>
                 <span className="font-semibold text-red-600">
                   ZMW {cashflow?.money_out?.expenses?.toLocaleString() || 0}
                 </span>
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-gray-600 dark:text-gray-400">Reinvestments</span>
+                <span className="text-gray-600">Reinvestments</span>
                 <span className="font-semibold text-red-600">
                   ZMW {cashflow?.money_out?.reinvestments?.toLocaleString() || 0}
                 </span>
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-gray-600 dark:text-gray-400">Withdrawals</span>
+                <span className="text-gray-600">Withdrawals</span>
                 <span className="font-semibold text-red-600">
                   ZMW {cashflow?.money_out?.withdrawals?.toLocaleString() || 0}
                 </span>
               </div>
-              <div className="pt-3 border-t border-gray-200 dark:border-navy-700">
+              <div className="pt-3 border-t border-gray-200">
                 <div className="flex justify-between items-center">
-                  <span className="font-semibold text-gray-900 dark:text-white">Total Out</span>
+                  <span className="font-semibold text-gray-900">Total Out</span>
                   <span className="font-bold text-red-600 text-lg">
                     ZMW {cashflow?.money_out?.total?.toLocaleString() || 0}
                   </span>
@@ -161,7 +161,7 @@ export default function Analytics() {
 
         <Card className="mt-6">
           <div className="flex items-center justify-between">
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Net Cashflow</h3>
+            <h3 className="text-lg font-semibold text-gray-900">Net Cashflow</h3>
             <span className={`text-2xl font-bold ${
               cashflow?.net_cashflow >= 0 ? 'text-green-600' : 'text-red-600'
             }`}>
@@ -175,28 +175,28 @@ export default function Analytics() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Top Products */}
         <Card>
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">
             Top Selling Products
           </h3>
           {hasTopProductsData ? (
             <ResponsiveContainer width="100%" height={300}>
               <BarChart data={topProductsChartData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+                <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
                 <XAxis dataKey="productName" stroke="#9ca3af" angle={-45} textAnchor="end" height={100} />
                 <YAxis stroke="#9ca3af" />
                 <Tooltip 
                   contentStyle={{ 
-                    backgroundColor: '#1e293b', 
-                    border: 'none',
+                    backgroundColor: '#ffffff',
+                    border: '1px solid #e5e7eb',
                     borderRadius: '8px',
-                    color: '#fff'
+                    color: '#111827',
                   }} 
                 />
                 <Bar dataKey="total_revenue" fill="#10b981" name="Revenue" />
               </BarChart>
             </ResponsiveContainer>
           ) : (
-            <div className="flex h-[300px] items-center justify-center rounded-xl border border-dashed border-gray-300 dark:border-navy-700 text-sm text-gray-500 dark:text-gray-400">
+            <div className="flex h-[300px] items-center justify-center rounded-xl border border-dashed border-gray-300 text-sm text-gray-500">
               No sales yet. Top products will appear after you record sales.
             </div>
           )}
@@ -204,7 +204,7 @@ export default function Analytics() {
 
         {/* Expenses Distribution */}
         <Card>
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">
             Expense Distribution
           </h3>
           {hasExpensesData ? (
@@ -226,16 +226,16 @@ export default function Analytics() {
                 </Pie>
                 <Tooltip 
                   contentStyle={{ 
-                    backgroundColor: '#1e293b', 
-                    border: 'none',
+                    backgroundColor: '#ffffff',
+                    border: '1px solid #e5e7eb',
                     borderRadius: '8px',
-                    color: '#fff'
+                    color: '#111827',
                   }} 
                 />
               </PieChart>
             </ResponsiveContainer>
           ) : (
-            <div className="flex h-[300px] items-center justify-center rounded-xl border border-dashed border-gray-300 dark:border-navy-700 text-sm text-gray-500 dark:text-gray-400">
+            <div className="flex h-[300px] items-center justify-center rounded-xl border border-dashed border-gray-300 text-sm text-gray-500">
               No expenses yet. Add expenses to populate this chart.
             </div>
           )}

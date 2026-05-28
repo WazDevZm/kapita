@@ -1,6 +1,13 @@
 import axios from 'axios'
+import { isClerkEnabled } from '../config/auth'
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api'
+
+let clerkTokenGetter = null
+
+export function setClerkTokenGetter(getter) {
+  clerkTokenGetter = getter
+}
 
 const api = axios.create({
   baseURL: API_URL,
@@ -9,10 +16,30 @@ const api = axios.create({
   },
 })
 
+async function resolveAuthToken(options = {}) {
+  const legacyToken = localStorage.getItem('access_token')
+  if (legacyToken) {
+    return legacyToken
+  }
+
+  if (clerkTokenGetter) {
+    try {
+      const token = await clerkTokenGetter(options)
+      if (token) return token
+    } catch (_) {
+      // No Clerk session
+    }
+  }
+
+  return null
+}
+
 // Request interceptor to add auth token
 api.interceptors.request.use(
-  (config) => {
-    const token = localStorage.getItem('access_token')
+  async (config) => {
+    const token = await resolveAuthToken(
+      config._clerkSkipCache ? { skipCache: true } : {},
+    )
     if (token) {
       config.headers.Authorization = `Bearer ${token}`
     }
@@ -47,6 +74,18 @@ api.interceptors.response.use(
     if (error.response?.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true
 
+      if (isClerkEnabled && clerkTokenGetter) {
+        try {
+          const token = await clerkTokenGetter({ skipCache: true })
+          if (token) {
+            originalRequest.headers.Authorization = `Bearer ${token}`
+            return api(originalRequest)
+          }
+        } catch (_) {
+          // Fall through to legacy refresh or redirect
+        }
+      }
+
       try {
         const refreshToken = localStorage.getItem('refresh_token')
         if (!refreshToken) throw new Error('No refresh token')
@@ -63,8 +102,10 @@ api.interceptors.response.use(
       } catch (refreshError) {
         localStorage.removeItem('access_token')
         localStorage.removeItem('refresh_token')
-        const isAdminPath = window.location.pathname.startsWith('/admin')
-        window.location.href = isAdminPath ? '/admin/login' : '/login'
+        if (!isClerkEnabled) {
+          const isAdminPath = window.location.pathname.startsWith('/admin')
+          window.location.href = isAdminPath ? '/admin/login' : '/login'
+        }
         return Promise.reject(refreshError)
       }
     }
@@ -78,7 +119,9 @@ export const authAPI = {
   register: (data) => api.post('/auth/register/', data),
   login: (data) => api.post('/auth/login/', data),
   refreshToken: (refresh) => axios.post(`${API_URL}/auth/token/refresh/`, { refresh }),
-  getProfile: () => api.get('/auth/me/'),
+  getProfile: (config) => api.get('/auth/me/', config),
+  getReceiptSettings: () => api.get('/auth/receipt-settings/'),
+  updateReceiptSettings: (data) => api.put('/auth/receipt-settings/', data),
   updateProfile: (data) => api.put('/auth/profile/', data),
   changePassword: (data) => api.post('/auth/change-password/', data),
 }
@@ -184,6 +227,19 @@ export const billingAPI = {
   extendSubscription: (userId, data) => api.post(`/billing/admin/subscriptions/${userId}/extend/`, data),
   revokeSubscription: (userId) => api.post(`/billing/admin/subscriptions/${userId}/revoke/`),
   getActivityLogs: () => api.get('/billing/admin/activity/'),
+}
+
+// Personal Finance API (separate from business)
+export const personalFinanceAPI = {
+  getTransactions: (params) => api.get('/personal/transactions/', { params }),
+  getOne: (id) => api.get(`/personal/transactions/${id}/`),
+  create: (data) => api.post('/personal/transactions/', data),
+  update: (id, data) => api.put(`/personal/transactions/${id}/`, data),
+  delete: (id) => api.delete(`/personal/transactions/${id}/`),
+  getSummary: (params) => api.get('/personal/transactions/summary/', { params }),
+  getDashboard: (params) => api.get('/personal/transactions/dashboard/', { params }),
+  getCategories: () => api.get('/personal/transactions/categories/'),
+  getTypes: () => api.get('/personal/transactions/types/'),
 }
 
 // AI proxy API (server-side) — frontend should never include the key

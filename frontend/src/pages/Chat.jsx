@@ -65,15 +65,15 @@ export default function Chat() {
     <div className="space-y-6 h-[calc(100vh-8rem)]">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">AI Business Assistant</h1>
-        <p className="text-gray-600 dark:text-gray-400">Ask questions about your business data</p>
+        <h1 className="text-2xl font-bold text-gray-900">AI Business Assistant</h1>
+        <p className="text-gray-600">Ask questions about your business data</p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 h-full">
         {/* Suggested Questions */}
         <div className="lg:col-span-1">
           <Card className="h-full">
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">
               Suggested Questions
             </h3>
             <div className="space-y-2">
@@ -81,7 +81,7 @@ export default function Chat() {
                 <button
                   key={index}
                   onClick={() => setInput(question)}
-                  className="w-full text-left p-3 text-sm bg-gray-50 dark:bg-navy-700 hover:bg-gray-100 dark:hover:bg-navy-600 rounded-lg transition-colors text-gray-700 dark:text-gray-300"
+                  className="w-full text-left p-3 text-sm bg-gray-50 hover:bg-gray-100 rounded-lg transition-colors text-gray-700"
                 >
                   {question}
                 </button>
@@ -104,21 +104,21 @@ export default function Chat() {
                 >
                   <div className={`p-2 rounded-lg ${
                     message.role === 'user'
-                      ? 'bg-primary-100 dark:bg-primary-900/20'
-                      : 'bg-gray-100 dark:bg-navy-700'
+                      ? 'bg-primary-100'
+                      : 'bg-gray-100'
                   }`}>
                     {message.role === 'user' ? (
-                      <User className="w-5 h-5 text-primary-600 dark:text-primary-400" />
+                      <User className="w-5 h-5 text-primary-600" />
                     ) : (
-                      <Bot className="w-5 h-5 text-gray-600 dark:text-gray-400" />
+                      <Bot className="w-5 h-5 text-gray-600" />
                     )}
                   </div>
                   <div className={`flex-1 p-4 rounded-lg ${
                     message.role === 'user'
-                      ? 'bg-primary-50 dark:bg-primary-900/10'
-                      : 'bg-gray-50 dark:bg-navy-700'
+                      ? 'bg-primary-50'
+                      : 'bg-gray-50'
                   }`}>
-                    <p className="text-gray-900 dark:text-white whitespace-pre-wrap">
+                    <p className="text-gray-900 whitespace-pre-wrap">
                       {message.content}
                     </p>
                   </div>
@@ -127,11 +127,11 @@ export default function Chat() {
               
               {loading && (
                 <div className="flex items-start space-x-3">
-                  <div className="p-2 rounded-lg bg-gray-100 dark:bg-navy-700">
-                    <Bot className="w-5 h-5 text-gray-600 dark:text-gray-400" />
+                  <div className="p-2 rounded-lg bg-gray-100">
+                    <Bot className="w-5 h-5 text-gray-600" />
                   </div>
-                  <div className="flex-1 p-4 rounded-lg bg-gray-50 dark:bg-navy-700">
-                    <Loader className="w-5 h-5 animate-spin text-gray-600 dark:text-gray-400" />
+                  <div className="flex-1 p-4 rounded-lg bg-gray-50">
+                    <Loader className="w-5 h-5 animate-spin text-gray-600" />
                   </div>
                 </div>
               )}

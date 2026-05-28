@@ -95,10 +95,34 @@ class ChangePasswordSerializer(serializers.Serializer):
 
 class ProfileUpdateSerializer(serializers.ModelSerializer):
     """Serializer for profile updates"""
-    
+
     class Meta:
         model = User
         fields = [
             'first_name', 'last_name', 'phone',
-            'business_name', 'currency', 'theme'
+            'business_name', 'currency', 'theme',
         ]
+
+
+class ReceiptSettingsSerializer(serializers.ModelSerializer):
+    """Business details printed on customer PDF receipts."""
+
+    class Meta:
+        model = User
+        fields = [
+            'business_name',
+            'first_name',
+            'last_name',
+            'phone',
+            'email',
+            'address',
+            'website',
+            'tin',
+            'vat_number',
+            'business_registration_number',
+            'receipt_tagline',
+            'receipt_thank_you',
+            'receipt_return_policy',
+            'currency',
+        ]
+        read_only_fields = ['email']

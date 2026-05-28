@@ -39,7 +39,7 @@ export default function AdminLayout() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-navy-900">
+    <div className="min-h-screen bg-gray-50">
       {sidebarOpen && (
         <div
           className="fixed inset-0 z-40 bg-gray-900/50 lg:hidden"
@@ -49,19 +49,19 @@ export default function AdminLayout() {
       )}
 
       <aside
-        className={`fixed inset-y-0 left-0 z-50 w-64 transform border-r border-gray-200 bg-white transition-transform duration-300 dark:border-navy-700 dark:bg-navy-800 lg:translate-x-0 ${
+        className={`fixed inset-y-0 left-0 z-50 w-64 transform border-r border-gray-200 bg-white transition-transform duration-300 lg:translate-x-0 ${
           sidebarOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
         <div className="flex h-full flex-col">
-          <div className="flex h-16 items-center justify-between border-b border-gray-200 px-5 dark:border-navy-700">
+          <div className="flex h-16 items-center justify-between border-b border-gray-200 px-5">
             <Link to="/admin/overview" className="flex items-center gap-2" onClick={() => setSidebarOpen(false)}>
               <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary-600 text-sm font-bold text-white">
                 K
               </div>
               <div>
-                <p className="text-sm font-semibold text-gray-900 dark:text-white">Kapita Admin</p>
-                <p className="text-xs text-gray-500 dark:text-gray-400">SaaS control panel</p>
+                <p className="text-sm font-semibold text-gray-900">Kapita Admin</p>
+                <p className="text-xs text-gray-500">SaaS control panel</p>
               </div>
             </Link>
             <button type="button" className="lg:hidden text-gray-500" onClick={() => setSidebarOpen(false)}>
@@ -80,8 +80,8 @@ export default function AdminLayout() {
                   className={({ isActive }) =>
                     `flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors ${
                       isActive
-                        ? 'bg-primary-50 text-primary-700 dark:bg-primary-900/30 dark:text-primary-300'
-                        : 'text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-navy-700'
+                        ? 'bg-primary-50 text-primary-700'
+                        : 'text-gray-600 hover:bg-gray-100'
                     }`
                   }
                 >
@@ -97,10 +97,10 @@ export default function AdminLayout() {
             })}
           </nav>
 
-          <div className="border-t border-gray-200 p-4 dark:border-navy-700">
-            <div className="mb-3 rounded-xl bg-gray-50 p-3 dark:bg-navy-700/50">
-              <p className="text-sm font-medium text-gray-900 dark:text-white">{user?.username}</p>
-              <p className="text-xs text-gray-500 dark:text-gray-400">{user?.email}</p>
+          <div className="border-t border-gray-200 p-4">
+            <div className="mb-3 rounded-xl bg-gray-50 p-3">
+              <p className="text-sm font-medium text-gray-900">{user?.username}</p>
+              <p className="text-xs text-gray-500">{user?.email}</p>
             </div>
             <button type="button" onClick={handleLogout} className="btn btn-secondary w-full inline-flex items-center justify-center gap-2">
               <LogOut className="h-4 w-4" />
@@ -111,15 +111,15 @@ export default function AdminLayout() {
       </aside>
 
       <div className="lg:pl-64">
-        <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b border-gray-200 bg-white/95 px-4 backdrop-blur dark:border-navy-700 dark:bg-navy-800/95 sm:px-6">
-          <button type="button" className="rounded-lg p-2 text-gray-600 hover:bg-gray-100 lg:hidden dark:text-gray-300" onClick={() => setSidebarOpen(true)}>
+        <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b border-gray-200 bg-white/95 px-4 backdrop-blur sm:px-6">
+          <button type="button" className="rounded-lg p-2 text-gray-600 hover:bg-gray-100 lg:hidden" onClick={() => setSidebarOpen(true)}>
             <Menu className="h-5 w-5" />
           </button>
           <div className="hidden lg:block">
-            <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Kapita SaaS Administration</p>
+            <p className="text-sm font-medium text-gray-500">Kapita SaaS Administration</p>
           </div>
           <div className="ml-auto flex items-center gap-2">
-            <span className="rounded-full bg-primary-100 px-3 py-1 text-xs font-semibold text-primary-800 dark:bg-primary-900/40 dark:text-primary-200">
+            <span className="rounded-full bg-primary-100 px-3 py-1 text-xs font-semibold text-primary-800">
               Admin
             </span>
           </div>

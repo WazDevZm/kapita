@@ -10,27 +10,27 @@ const MONTHLY_AMOUNT = '29.99'
 function accessBadgeClasses(status) {
   switch (status) {
     case 'active_subscription':
-      return 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300'
+      return 'bg-green-100 text-green-800'
     case 'active_trial':
-      return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300'
+      return 'bg-yellow-100 text-yellow-800'
     case 'pending_payment_verification':
-      return 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300'
+      return 'bg-blue-100 text-blue-800'
     case 'expired':
-      return 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300'
+      return 'bg-red-100 text-red-800'
     default:
-      return 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200'
+      return 'bg-gray-100 text-gray-800'
   }
 }
 
 function submissionBadgeClasses(status) {
   switch (status) {
     case 'approved':
-      return 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300'
+      return 'bg-green-100 text-green-800'
     case 'rejected':
-      return 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300'
+      return 'bg-red-100 text-red-800'
     case 'pending':
     default:
-      return 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300'
+      return 'bg-blue-100 text-blue-800'
   }
 }
 
@@ -159,7 +159,7 @@ export default function Billing() {
     return (
       <div className="flex min-h-[50vh] flex-col items-center justify-center gap-4 text-center">
         <AlertTriangle className="h-10 w-10 text-red-500" />
-        <p className="max-w-md text-gray-700 dark:text-gray-300">{loadError}</p>
+        <p className="max-w-md text-gray-700">{loadError}</p>
         <button type="button" onClick={loadData} className="btn btn-primary">
           Retry
         </button>
@@ -173,8 +173,8 @@ export default function Billing() {
     <div className="space-y-6">
       <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Billing & Access</h1>
-          <p className="text-gray-600 dark:text-gray-400">
+          <h1 className="text-2xl font-bold text-gray-900">Billing & Access</h1>
+          <p className="text-gray-600">
             Track your trial, subscription, and payment verification status.
           </p>
         </div>
@@ -189,16 +189,16 @@ export default function Billing() {
       <div className="grid grid-cols-1 gap-6 md:grid-cols-4">
         <Card>
           <div className="space-y-2">
-            <p className="text-sm text-gray-500 dark:text-gray-400">Days Remaining</p>
-            <p className="text-3xl font-bold text-gray-900 dark:text-white">
+            <p className="text-sm text-gray-500">Days Remaining</p>
+            <p className="text-3xl font-bold text-gray-900">
               {status?.days_remaining ?? 0}
             </p>
           </div>
         </Card>
         <Card>
           <div className="space-y-2">
-            <p className="text-sm text-gray-500 dark:text-gray-400">Trial Ends</p>
-            <p className="text-lg font-semibold text-gray-900 dark:text-white">
+            <p className="text-sm text-gray-500">Trial Ends</p>
+            <p className="text-lg font-semibold text-gray-900">
               {status?.trial_end_date
                 ? new Date(status.trial_end_date).toLocaleDateString()
                 : 'Not provided'}
@@ -207,8 +207,8 @@ export default function Billing() {
         </Card>
         <Card>
           <div className="space-y-2">
-            <p className="text-sm text-gray-500 dark:text-gray-400">Subscription Ends</p>
-            <p className="text-lg font-semibold text-gray-900 dark:text-white">
+            <p className="text-sm text-gray-500">Subscription Ends</p>
+            <p className="text-lg font-semibold text-gray-900">
               {status?.subscription_end_date
                 ? new Date(status.subscription_end_date).toLocaleDateString()
                 : 'No active subscription'}
@@ -217,8 +217,8 @@ export default function Billing() {
         </Card>
         <Card>
           <div className="space-y-2">
-            <p className="text-sm text-gray-500 dark:text-gray-400">Expiry Date</p>
-            <p className="text-lg font-semibold text-gray-900 dark:text-white">
+            <p className="text-sm text-gray-500">Expiry Date</p>
+            <p className="text-lg font-semibold text-gray-900">
               {status?.expiry_date
                 ? new Date(status.expiry_date).toLocaleDateString()
                 : 'Not provided'}
@@ -228,12 +228,12 @@ export default function Billing() {
       </div>
 
       {status?.access_status === 'active_trial' && (
-        <Card className="border border-yellow-200 bg-yellow-50 dark:border-yellow-900/50 dark:bg-yellow-950/30">
+        <Card className="border border-yellow-200 bg-yellow-50">
           <div className="flex items-start gap-3">
             <Clock3 className="mt-1 h-5 w-5 text-yellow-600" />
             <div>
-              <h3 className="font-semibold text-yellow-900 dark:text-yellow-200">Free trial active</h3>
-              <p className="text-sm text-yellow-800 dark:text-yellow-300">
+              <h3 className="font-semibold text-yellow-900">Free trial active</h3>
+              <p className="text-sm text-yellow-800">
                 You have {status.days_remaining ?? 0} day(s) left. After the trial ends, submit
                 payment proof (K29.99/month) to continue using Kapita.
               </p>
@@ -243,12 +243,12 @@ export default function Billing() {
       )}
 
       {status?.access_status === 'active_subscription' && (
-        <Card className="border border-green-200 bg-green-50 dark:border-green-900/50 dark:bg-green-950/30">
+        <Card className="border border-green-200 bg-green-50">
           <div className="flex items-start gap-3">
             <BadgeCheck className="mt-1 h-5 w-5 text-green-600" />
             <div>
-              <h3 className="font-semibold text-green-900 dark:text-green-200">Subscription active</h3>
-              <p className="text-sm text-green-800 dark:text-green-300">
+              <h3 className="font-semibold text-green-900">Subscription active</h3>
+              <p className="text-sm text-green-800">
                 Your subscription is active with {status.days_remaining ?? 0} day(s) remaining.
               </p>
             </div>
@@ -257,12 +257,12 @@ export default function Billing() {
       )}
 
       {status?.access_status === 'pending_payment_verification' && (
-        <Card className="border border-blue-200 bg-blue-50 dark:border-blue-900/50 dark:bg-blue-950/30">
+        <Card className="border border-blue-200 bg-blue-50">
           <div className="flex items-start gap-3">
             <Clock3 className="mt-1 h-5 w-5 text-blue-600" />
             <div>
-              <h3 className="font-semibold text-blue-900 dark:text-blue-200">Payment under review</h3>
-              <p className="text-sm text-blue-800 dark:text-blue-300">
+              <h3 className="font-semibold text-blue-900">Payment under review</h3>
+              <p className="text-sm text-blue-800">
                 Your payment proof is being reviewed. You will regain full access once an admin
                 approves it.
               </p>
@@ -272,12 +272,12 @@ export default function Billing() {
       )}
 
       {status?.access_status === 'expired' && (
-        <Card className="border border-red-200 bg-red-50 dark:border-red-900/50 dark:bg-red-950/30">
+        <Card className="border border-red-200 bg-red-50">
           <div className="flex items-start gap-3">
             <AlertTriangle className="mt-1 h-5 w-5 text-red-600" />
             <div>
-              <h3 className="font-semibold text-red-900 dark:text-red-200">Access expired</h3>
-              <p className="text-sm text-red-800 dark:text-red-300">
+              <h3 className="font-semibold text-red-900">Access expired</h3>
+              <p className="text-sm text-red-800">
                 Submit payment proof below (K29.99) to request a 30-day subscription after admin
                 approval.
               </p>
@@ -290,24 +290,24 @@ export default function Billing() {
         <Card>
           <div className="mb-4 flex items-center gap-2">
             <UploadCloud className="h-5 w-5 text-primary-600" />
-            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+            <h2 className="text-lg font-semibold text-gray-900">
               Submit Payment Proof
             </h2>
           </div>
 
           {submitSuccess && (
-            <div className="mb-4 rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-800 dark:border-green-900/50 dark:bg-green-950/30 dark:text-green-200">
+            <div className="mb-4 rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-800">
               {submitSuccess}
             </div>
           )}
           {submitError && (
-            <div className="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800 dark:border-red-900/50 dark:bg-red-950/30 dark:text-red-200">
+            <div className="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
               {submitError}
             </div>
           )}
 
           {hasPendingSubmission && (
-            <div className="mb-4 rounded-lg border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-800 dark:border-blue-900/50 dark:bg-blue-950/30 dark:text-blue-200">
+            <div className="mb-4 rounded-lg border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-800">
               You already have a pending submission. Wait for admin review before submitting again.
             </div>
           )}
@@ -334,7 +334,7 @@ export default function Billing() {
                 value={formData.amount}
                 onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
               />
-              <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+              <p className="mt-1 text-xs text-gray-500">
                 Monthly plan: K29.99
               </p>
             </div>
@@ -360,7 +360,7 @@ export default function Billing() {
               />
             </div>
             {preview && (
-              <div className="overflow-hidden rounded-xl border border-gray-200 dark:border-navy-700">
+              <div className="overflow-hidden rounded-xl border border-gray-200">
                 <img src={preview} alt="Payment proof preview" className="h-56 w-full object-cover" />
               </div>
             )}
@@ -386,22 +386,22 @@ export default function Billing() {
         <Card>
           <div className="mb-4 flex items-center gap-2">
             <Receipt className="h-5 w-5 text-primary-600" />
-            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+            <h2 className="text-lg font-semibold text-gray-900">
               Your Submission History
             </h2>
           </div>
           <div className="space-y-3">
             {history.length === 0 && (
-              <div className="rounded-xl border border-dashed border-gray-300 p-6 text-sm text-gray-500 dark:border-navy-700 dark:text-gray-400">
+              <div className="rounded-xl border border-dashed border-gray-300 p-6 text-sm text-gray-500">
                 No payment submissions yet.
               </div>
             )}
             {history.map((item) => (
-              <div key={item.id} className="rounded-xl border border-gray-200 p-4 dark:border-navy-700">
+              <div key={item.id} className="rounded-xl border border-gray-200 p-4">
                 <div className="flex items-center justify-between gap-3">
                   <div>
-                    <p className="font-semibold text-gray-900 dark:text-white">{item.transaction_id}</p>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">
+                    <p className="font-semibold text-gray-900">{item.transaction_id}</p>
+                    <p className="text-sm text-gray-500">
                       {new Date(item.created_at).toLocaleString()}
                     </p>
                   </div>
@@ -411,7 +411,7 @@ export default function Billing() {
                     {item.status}
                   </span>
                 </div>
-                <div className="mt-3 grid grid-cols-1 gap-3 text-sm text-gray-600 dark:text-gray-300 sm:grid-cols-2">
+                <div className="mt-3 grid grid-cols-1 gap-3 text-sm text-gray-600 sm:grid-cols-2">
                   <p>
                     <span className="font-medium">Amount:</span> {currency}{' '}
                     {Number(item.amount).toLocaleString()}
@@ -422,7 +422,7 @@ export default function Billing() {
                   </p>
                 </div>
                 {item.admin_notes && (
-                  <p className="mt-3 text-sm text-gray-700 dark:text-gray-200">
+                  <p className="mt-3 text-sm text-gray-700">
                     <span className="font-medium">Admin notes:</span> {item.admin_notes}
                   </p>
                 )}
@@ -431,7 +431,7 @@ export default function Billing() {
                     href={item.proof_image_url}
                     target="_blank"
                     rel="noreferrer"
-                    className="mt-3 block overflow-hidden rounded-lg border border-gray-200 dark:border-navy-700"
+                    className="mt-3 block overflow-hidden rounded-lg border border-gray-200"
                   >
                     <img src={item.proof_image_url} alt="Proof" className="h-40 w-full object-cover" />
                   </a>

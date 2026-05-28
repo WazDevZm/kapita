@@ -1,110 +1,148 @@
-import { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { useEffect, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { SignIn } from '@clerk/react'
+import AuthPageLayout from '../../components/auth/AuthPageLayout'
+import { AuthFooterLinks, AuthLink } from '../../components/auth/AuthFooter'
+import { kapitaClerkAppearance } from '../../config/clerkAppearance'
 import { useAuthStore } from '../../store/authStore'
+import { isClerkEnabled } from '../../config/auth'
 import PasswordInput from '../../components/PasswordInput'
+import { getPostAuthPath } from '../../utils/postAuthPath'
 
-export default function Login() {
-  const navigate = useNavigate()
+function LegacyLoginForm({ onSuccess }) {
   const { login, loading } = useAuthStore()
-  const [formData, setFormData] = useState({
-    username: '',
-    password: '',
-  })
+  const [formData, setFormData] = useState({ username: '', password: '' })
   const [error, setError] = useState('')
 
   const handleSubmit = async (e) => {
     e.preventDefault()
     setError('')
-
     const result = await login(formData)
     if (result.success) {
-      if (result.user?.is_staff) {
-        navigate('/admin/overview')
-      } else if (result.user?.is_expired || result.user?.access_status === 'expired' || result.user?.access_status === 'pending_payment_verification') {
-        navigate('/app/billing')
-      } else {
-        navigate('/app/dashboard')
-      }
+      onSuccess(result.user)
     } else {
-      setError(result.error?.detail || 'Invalid credentials')
+      const detail = result.error?.detail
+      setError(typeof detail === 'string' ? detail : 'Invalid credentials')
     }
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-navy-900 px-4">
-      <div className="max-w-md w-full space-y-8">
-        {/* Logo */}
-        <div className="text-center">
-          <div className="inline-flex items-center justify-center mb-6">
-            <img 
-              src="/logo1.png" 
-              alt="Kapita Logo" 
-              className="h-24 w-auto object-contain"
-              onError={(e) => {
-                e.target.style.display = 'none'
-                e.target.nextElementSibling.style.display = 'flex'
-              }}
-            />
-            <div className="w-24 h-24 bg-primary-600 rounded-2xl items-center justify-center hidden">
-              <span className="text-white font-bold text-4xl">K</span>
-            </div>
-          </div>
-          <h2 className="text-3xl font-bold text-gray-900 dark:text-white">
-            Welcome to Kapita
-          </h2>
-          <p className="mt-2 text-gray-600 dark:text-gray-400">
-            Smart business tracking made simple
+    <form onSubmit={handleSubmit} className="space-y-5">
+      {error && (
+        <div className="rounded-lg border border-red-200 bg-red-50 p-3">
+          <p className="text-sm text-red-600">{error}</p>
+        </div>
+      )}
+      <div>
+        <label className="label">Username</label>
+        <input
+          type="text"
+          required
+          className="input"
+          value={formData.username}
+          onChange={(e) => setFormData({ ...formData, username: e.target.value })}
+        />
+      </div>
+      <div>
+        <label className="label">Password</label>
+        <PasswordInput
+          value={formData.password}
+          onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+          required
+        />
+      </div>
+      <button type="submit" disabled={loading} className="btn btn-primary w-full">
+        {loading ? 'Signing in...' : 'Sign in with password'}
+      </button>
+    </form>
+  )
+}
+
+export default function Login() {
+  const navigate = useNavigate()
+  const { logout, isAuthenticated, user } = useAuthStore()
+  const [useLegacyLogin, setUseLegacyLogin] = useState(false)
+
+  useEffect(() => {
+    if (!isClerkEnabled) {
+      logout()
+    }
+  }, [logout])
+
+  useEffect(() => {
+    if (isAuthenticated && user) {
+      navigate(getPostAuthPath(user), { replace: true })
+    }
+  }, [isAuthenticated, user, navigate])
+
+  const signUpFooter = (
+    <AuthFooterLinks
+      primary={
+        <p>
+          Don&apos;t have an account? <AuthLink to="/register">Sign up free</AuthLink>
+        </p>
+      }
+      secondary={<AuthLink to="/">← Back to home</AuthLink>}
+    />
+  )
+
+  if (isClerkEnabled) {
+    return (
+      <AuthPageLayout
+        title="Welcome back"
+        subtitle="Sign in to manage sales, expenses, and your business dashboard"
+        footer={signUpFooter}
+      >
+        <div className="auth-notice mb-4 text-left">
+          <p className="auth-notice-title">Existing Kapita account?</p>
+          <p className="mt-1 text-primary-900/90">
+            Sign in with the <strong>same email</strong> you used when you registered — your
+            sales, billing, and data will be linked automatically.
           </p>
         </div>
 
-        {/* Form */}
-        <div className="card">
-          <form onSubmit={handleSubmit} className="space-y-6">
-            {error && (
-              <div className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
-                <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
-              </div>
-            )}
-
-            <div>
-              <label className="label">Username</label>
-              <input
-                type="text"
-                required
-                className="input"
-                value={formData.username}
-                onChange={(e) => setFormData({ ...formData, username: e.target.value })}
-              />
+        {!useLegacyLogin ? (
+          <>
+            <SignIn
+              routing="virtual"
+              signUpUrl="/register"
+              appearance={kapitaClerkAppearance}
+            />
+            <div className="auth-divider">
+              <button
+                type="button"
+                onClick={() => setUseLegacyLogin(true)}
+                className="text-sm font-medium text-slate-600 hover:text-primary-700"
+              >
+                Use username &amp; password instead
+              </button>
             </div>
-
-            <div>
-              <label className="label">Password</label>
-              <PasswordInput
-                value={formData.password}
-                onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                required
-              />
+          </>
+        ) : (
+          <>
+            <LegacyLoginForm onSuccess={(u) => navigate(getPostAuthPath(u), { replace: true })} />
+            <div className="auth-divider">
+              <button
+                type="button"
+                onClick={() => setUseLegacyLogin(false)}
+                className="text-sm font-medium text-slate-600 hover:text-primary-700"
+              >
+                Back to secure sign-in
+              </button>
             </div>
+          </>
+        )}
+      </AuthPageLayout>
+    )
+  }
 
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full btn btn-primary"
-            >
-              {loading ? 'Signing in...' : 'Sign in'}
-            </button>
-          </form>
-
-          <div className="mt-6 text-center">
-            <p className="text-sm text-gray-600 dark:text-gray-400">
-              Don't have an account?{' '}
-              <Link to="/register" className="text-primary-600 hover:text-primary-700 font-medium">
-                Sign up
-              </Link>
-            </p>
-          </div>
-        </div>
-      </div>
-    </div>
+  return (
+    <AuthPageLayout
+      title="Welcome back"
+      subtitle="Sign in to manage sales, expenses, and your business dashboard"
+      footer={signUpFooter}
+    >
+      <LegacyLoginForm onSuccess={(u) => navigate(getPostAuthPath(u), { replace: true })} />
+    </AuthPageLayout>
   )
 }

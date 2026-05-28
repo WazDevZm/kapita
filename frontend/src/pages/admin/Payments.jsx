@@ -61,15 +61,15 @@ export default function AdminPayments() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Payment Verification</h1>
-        <p className="mt-1 text-gray-600 dark:text-gray-400">
+        <h1 className="text-2xl font-bold text-gray-900">Payment Verification</h1>
+        <p className="mt-1 text-gray-600">
           Review payment proofs and approve 30-day subscriptions from the approval date.
         </p>
       </div>
 
       <Card>
         <div className="mb-4 flex flex-wrap items-center gap-3">
-          <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Show</label>
+          <label className="text-sm font-medium text-gray-700">Show</label>
           <select className="input w-48" value={filter} onChange={(e) => setFilter(e.target.value)}>
             <option value="pending">Pending</option>
             <option value="approved">Approved</option>
@@ -80,31 +80,31 @@ export default function AdminPayments() {
 
         <div className="space-y-4">
           {payments.length === 0 && (
-            <div className="rounded-xl border border-dashed border-gray-300 p-8 text-center text-sm text-gray-500 dark:border-navy-700">
+            <div className="rounded-xl border border-dashed border-gray-300 p-8 text-center text-sm text-gray-500">
               No payments in this category.
             </div>
           )}
           {payments.map((payment) => (
-            <div key={payment.id} className="rounded-2xl border border-gray-200 p-5 dark:border-navy-700">
+            <div key={payment.id} className="rounded-2xl border border-gray-200 p-5">
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div>
-                  <p className="font-semibold text-gray-900 dark:text-white">
+                  <p className="font-semibold text-gray-900">
                     {payment.user_business_name || payment.user_username}
                   </p>
                   <p className="text-sm text-gray-500">{payment.user_email}</p>
-                  <p className="mt-1 text-sm text-gray-600 dark:text-gray-300">TX: {payment.transaction_id}</p>
+                  <p className="mt-1 text-sm text-gray-600">TX: {payment.transaction_id}</p>
                 </div>
                 <span className={`rounded-full px-3 py-1 text-xs font-semibold ${badgeClass(payment.status)}`}>
                   {formatStatus(payment.status)}
                 </span>
               </div>
-              <div className="mt-3 grid gap-2 text-sm text-gray-600 dark:text-gray-300 sm:grid-cols-2">
+              <div className="mt-3 grid gap-2 text-sm text-gray-600 sm:grid-cols-2">
                 <p><span className="font-medium">Amount:</span> {Number(payment.amount).toLocaleString()}</p>
                 <p><span className="font-medium">Submitted:</span> {new Date(payment.created_at).toLocaleString()}</p>
               </div>
               {payment.proof_image_url && (
-                <a href={payment.proof_image_url} target="_blank" rel="noreferrer" className="mt-4 block overflow-hidden rounded-xl border border-gray-200 dark:border-navy-700">
-                  <img src={payment.proof_image_url} alt="Payment proof" className="max-h-64 w-full object-contain bg-gray-50 dark:bg-navy-900" />
+                <a href={payment.proof_image_url} target="_blank" rel="noreferrer" className="mt-4 block overflow-hidden rounded-xl border border-gray-200">
+                  <img src={payment.proof_image_url} alt="Payment proof" className="max-h-64 w-full object-contain bg-gray-50" />
                 </a>
               )}
               {payment.status === 'pending' && (
@@ -127,7 +127,7 @@ export default function AdminPayments() {
                 </>
               )}
               {payment.admin_notes && (
-                <p className="mt-3 text-sm text-gray-700 dark:text-gray-200"><span className="font-medium">Notes:</span> {payment.admin_notes}</p>
+                <p className="mt-3 text-sm text-gray-700"><span className="font-medium">Notes:</span> {payment.admin_notes}</p>
               )}
             </div>
           ))}

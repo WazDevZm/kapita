@@ -141,15 +141,18 @@ class SaleViewSet(viewsets.ModelViewSet):
             return Response({'detail': 'Sale not found.'}, status=404)
 
         user = request.user
-        business_name = getattr(user, 'business_name', '') or user.get_full_name() or user.email or 'Kapita'
-        phone = getattr(user, 'phone', '') or 'Not provided'
-        email = getattr(user, 'email', '') or 'Not provided'
-        website = getattr(user, 'website', '') or 'Not provided'
-        address = getattr(user, 'address', '') or 'Not provided'
-        tin = getattr(user, 'tin', '') or 'Not provided'
-        vat = getattr(user, 'vat_number', '') or 'Not provided'
-        business_reg = getattr(user, 'business_registration_number', '') or 'Not provided'
-        seller_name = getattr(user, 'get_full_name', lambda: '')() or user.username or 'Not provided'
+        business_name = user.business_name or user.get_full_name() or user.email or 'Kapita'
+        phone = user.phone or ''
+        email = user.email or ''
+        website = user.website or ''
+        address = user.address or ''
+        tin = user.tin or ''
+        vat = user.vat_number or ''
+        business_reg = user.business_registration_number or ''
+        seller_name = user.get_full_name() or user.username or ''
+        receipt_tagline = user.receipt_tagline or 'Official proof of purchase'
+        receipt_thank_you = user.receipt_thank_you or 'Thank you for your purchase! We appreciate your business.'
+        receipt_return_policy = user.receipt_return_policy or 'Return/Exchange Policy: Items may be returned within 7 days with proof of purchase, subject to inspection.'
         receipt_no = f'REC-{datetime.now().year}-{sale.id:05d}'
         transaction_id = f'TXN-{sale.id:08d}'
         transaction_dt = sale.created_at.strftime('%Y-%m-%d %H:%M')
@@ -285,7 +288,7 @@ class SaleViewSet(viewsets.ModelViewSet):
         elements.append(Spacer(1, 4 * mm))
 
         elements.append(Paragraph('SALES RECEIPT', title_style))
-        elements.append(Paragraph('Official proof of purchase', ParagraphStyle('Subtitle', parent=small, alignment=1, textColor=colors.HexColor('#6b7280'))))
+        elements.append(Paragraph(receipt_tagline, ParagraphStyle('Subtitle', parent=small, alignment=1, textColor=colors.HexColor('#6b7280'))))
         elements.append(Spacer(1, 3 * mm))
 
         meta_rows = [
@@ -412,8 +415,8 @@ class SaleViewSet(viewsets.ModelViewSet):
         elements.append(Spacer(1, 4 * mm))
 
         for line in [
-            'Thank you for your purchase! We appreciate your business.',
-            'Return/Exchange Policy: Items may be returned within 7 days with proof of purchase, subject to inspection.',
+            receipt_thank_you,
+            receipt_return_policy,
             f'Contact: {safe_text(phone)} | {safe_text(email)} | {safe_text(website)}',
         ]:
             elements.append(Paragraph(line, small))

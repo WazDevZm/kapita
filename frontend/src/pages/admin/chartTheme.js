@@ -1,11 +1,12 @@
 export const CHART_COLORS = ['#10b981', '#3b82f6', '#eab308', '#ef4444', '#8b5cf6', '#f97316']
 
 export const chartTooltipStyle = {
-  backgroundColor: '#1e293b',
-  border: 'none',
+  backgroundColor: '#ffffff',
+  border: '1px solid #e5e7eb',
   borderRadius: '8px',
-  color: '#fff',
+  color: '#111827',
+  boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)',
 }
 
-export const chartGridStroke = '#374151'
-export const chartAxisStroke = '#9ca3af'
+export const chartGridStroke = '#e5e7eb'
+export const chartAxisStroke = '#6b7280'

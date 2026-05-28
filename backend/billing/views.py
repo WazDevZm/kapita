@@ -12,6 +12,7 @@ from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework.response import Response
 from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.views import APIView
+from django.http import FileResponse
 
 from accounts.serializers import UserSerializer
 from .models import PaymentSubmission, Subscription, ActivityLog
@@ -314,3 +315,35 @@ class ActivityLogView(APIView):
     def get(self, request):
         logs = ActivityLog.objects.select_related('actor', 'target_user', 'payment_submission')[:50]
         return Response(ActivityLogSerializer(logs, many=True).data)
+
+
+class PaymentProofFileView(APIView):
+    """Serve payment proof images in production (auth via header or ?token= for img tags)."""
+    permission_classes = [IsAuthenticated]
+
+    def initial(self, request, *args, **kwargs):
+        token = request.query_params.get('token')
+        if token and not request.META.get('HTTP_AUTHORIZATION'):
+            request.META['HTTP_AUTHORIZATION'] = f'Bearer {token}'
+        return super().initial(request, *args, **kwargs)
+
+    def get(self, request, payment_id):
+        payment = get_object_or_404(PaymentSubmission, pk=payment_id)
+
+        if payment.user_id != request.user.id and not request.user.is_staff:
+            return Response({'detail': 'Not allowed to view this payment proof.'}, status=status.HTTP_403_FORBIDDEN)
+
+        if not payment.proof_image:
+            return Response({'detail': 'No proof image uploaded.'}, status=status.HTTP_404_NOT_FOUND)
+
+        content_type = 'image/jpeg'
+        name = payment.proof_image.name.lower()
+        if name.endswith('.png'):
+            content_type = 'image/png'
+        elif name.endswith('.webp'):
+            content_type = 'image/webp'
+        elif name.endswith('.gif'):
+            content_type = 'image/gif'
+
+        return FileResponse(payment.proof_image.open('rb'), content_type=content_type)
+

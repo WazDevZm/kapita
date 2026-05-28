@@ -103,7 +103,7 @@ export default function Expenses() {
     { 
       header: 'Category', 
       render: (row) => (
-        <span className="px-2 py-1 rounded text-xs font-medium bg-gray-100 dark:bg-navy-700 text-gray-800 dark:text-gray-200">
+        <span className="px-2 py-1 rounded text-xs font-medium bg-gray-100 text-gray-800">
           {row.category.replace('_', ' ')}
         </span>
       )
@@ -144,8 +144,8 @@ export default function Expenses() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Expenses</h1>
-          <p className="text-gray-600 dark:text-gray-400">Track all business expenses</p>
+          <h1 className="text-2xl font-bold text-gray-900">Expenses</h1>
+          <p className="text-gray-600">Track all business expenses</p>
         </div>
         <button
           onClick={() => {
