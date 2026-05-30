@@ -91,6 +91,9 @@ export const useAuthStore = create((set, get) => ({
 
   hydrateSession: async () => {
     if (isClerkEnabled) {
+      // Clerk session replaces any stale password login tokens.
+      localStorage.removeItem('access_token')
+      localStorage.removeItem('refresh_token')
       set({ sessionLoading: true, error: null })
 
       const maxAttempts = 3

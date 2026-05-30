@@ -13,6 +13,8 @@ createRoot(document.getElementById('root')).render(
     {isClerkEnabled ? (
       <ClerkProvider
         afterSignOutUrl="/"
+        afterSignInUrl="/app/dashboard"
+        afterSignUpUrl="/app/dashboard"
         signInUrl="/login"
         signUpUrl="/register"
       >

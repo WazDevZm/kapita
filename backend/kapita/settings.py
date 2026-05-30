@@ -229,6 +229,11 @@ CLERK_AUTHORIZED_PARTIES = [
     if origin.strip()
 ]
 
-# OpenAI / Router config (set via environment variable, do NOT commit real keys)
+# OpenRouter / OpenAI-compatible AI (Mumu chat + analytics proxy)
+OPENROUTER_API_KEY = config('OPENROUTER_API_KEY', default='')
+OPENROUTER_BASE_URL = config('OPENROUTER_BASE_URL', default='https://openrouter.ai/api/v1')
+OPENROUTER_MODEL = config('OPENROUTER_MODEL', default='google/gemini-2.0-flash-001')
+OPENROUTER_SITE_URL = config('OPENROUTER_SITE_URL', default='http://localhost:3000')
+# Legacy names still supported as fallbacks
 OPENAI_API_KEY = config('OPENAI_API_KEY', default='')
-OPENAI_ROUTER_URL = config('OPENAI_ROUTER_URL', default='https://api.openai.com/v1')
+OPENAI_ROUTER_URL = config('OPENAI_ROUTER_URL', default='https://openrouter.ai/api/v1')

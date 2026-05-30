@@ -10,7 +10,6 @@ django-filter==23.3
 gunicorn==21.2.0
 whitenoise==6.6.0
 setuptools<81
-anthropic==0.18.1
 reportlab==3.6.12
 requests==2.31.0
 clerk-backend-api>=1.7.0

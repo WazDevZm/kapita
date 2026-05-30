@@ -1,10 +1,8 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
-from django.db.models import Sum, Count, Q
+from django.db.models import Sum
 from datetime import datetime, timedelta
-import anthropic
-from decouple import config
 
 from products.models import Product
 from sales.models import Sale
@@ -12,48 +10,44 @@ from customers.models import Customer
 from credits.models import Credit
 from expenses.models import Expense
 
+from .openrouter_client import OpenRouterError, chat_completion
+
 
 class ChatAssistantView(APIView):
-    """AI Chat Assistant powered by Claude API"""
+    """AI Chat Assistant (Mumu) via OpenRouter"""
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
         user_message = request.data.get('message', '')
-        
+
         if not user_message:
             return Response({'error': 'Message is required'}, status=400)
 
-        # Gather business context
         context = self.get_business_context(request.user)
-        
-        # Create system prompt with business data
         system_prompt = self.create_system_prompt(context)
-        
+
         try:
-            # Call Claude API
-            client = anthropic.Anthropic(
-                api_key=config('ANTHROPIC_API_KEY', default='')
+            assistant_response = chat_completion(
+                system_prompt=system_prompt,
+                user_message=user_message,
             )
-            
-            message = client.messages.create(
-                model="claude-sonnet-4-20250514",
-                max_tokens=1024,
-                system=system_prompt,
-                messages=[
-                    {"role": "user", "content": user_message}
-                ]
-            )
-            
-            assistant_response = message.content[0].text
-            
             return Response({
                 'response': assistant_response,
-                'context_used': True
+                'context_used': True,
             })
-            
-        except Exception as e:
+        except OpenRouterError as exc:
+            message = str(exc)
+            status = 503 if 'not configured' in message.lower() else 502
+            if status == 503:
+                message = (
+                    'Mumu is not configured yet. Add OPENROUTER_API_KEY to backend/.env '
+                    '(get a key at openrouter.ai/keys), set OPENROUTER_BASE_URL to '
+                    'https://openrouter.ai/api/v1, then restart the server.'
+                )
+            return Response({'error': message}, status=status)
+        except Exception as exc:
             return Response({
-                'error': f'Failed to get AI response: {str(e)}'
+                'error': f'Failed to get AI response: {str(exc)}',
             }, status=500)
 
     def get_business_context(self, user):
@@ -161,7 +155,7 @@ class ChatAssistantView(APIView):
 
     def create_system_prompt(self, context):
         """Create system prompt with business context"""
-        return f"""You are a helpful business assistant for {context['business_name']}, 
+        return f"""You are Mumu, a helpful business assistant for {context['business_name']}, 
 a small business in Zambia. You have access to their real-time business data and can 
 answer questions about their finances, inventory, sales, and customers.
 
@@ -200,7 +194,8 @@ LOW STOCK ALERTS:
 RECENT ACTIVITY:
 - Sales in last 7 days: {context['recent_sales_count']}
 
-Answer questions about the business using this data. Be helpful, concise, and provide 
-actionable insights. When discussing money, always use {context['currency']} as the currency.
+Answer questions about the business using this data. Be helpful, concise, and provide
+actionable insights. When introducing yourself or signing off, use the name Mumu.
+When discussing money, always use {context['currency']} as the currency.
 If asked about profitability, consider both profit and expenses. If asked about cash flow,
 explain the difference between revenue and available cash."""

@@ -38,7 +38,9 @@ services:
         sync: false
       - key: CSRF_TRUSTED_ORIGINS
         sync: false
-      - key: ANTHROPIC_API_KEY
+      - key: OPENROUTER_API_KEY
+        sync: false
+      - key: OPENROUTER_MODEL
         sync: false
       - key: CLERK_SECRET_KEY
         sync: false

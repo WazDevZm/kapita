@@ -17,6 +17,4 @@ export function getPostAuthPath(user) {
   return '/app/dashboard'
 }
 
-export function isAuthRoute(pathname) {
-  return pathname === '/login' || pathname === '/register'
-}
+export { isAuthRoute } from './routes'

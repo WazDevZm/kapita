@@ -1,7 +1,9 @@
 import axios from 'axios'
 import { isClerkEnabled } from '../config/auth'
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api'
+const API_URL =
+  import.meta.env.VITE_API_URL ||
+  (import.meta.env.DEV ? '/api' : 'http://localhost:8000/api')
 
 let clerkTokenGetter = null
 
@@ -17,18 +19,18 @@ const api = axios.create({
 })
 
 async function resolveAuthToken(options = {}) {
-  const legacyToken = localStorage.getItem('access_token')
-  if (legacyToken) {
-    return legacyToken
-  }
-
-  if (clerkTokenGetter) {
+  if (isClerkEnabled && clerkTokenGetter) {
     try {
-      const token = await clerkTokenGetter(options)
-      if (token) return token
+      const clerkToken = await clerkTokenGetter(options)
+      if (clerkToken) return clerkToken
     } catch (_) {
       // No Clerk session
     }
+  }
+
+  const legacyToken = localStorage.getItem('access_token')
+  if (legacyToken) {
+    return legacyToken
   }
 
   return null

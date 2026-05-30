@@ -185,8 +185,8 @@ export default function Landing() {
     },
     {
       icon: MessageSquare,
-      title: 'AI Assistant',
-      description: 'Ask questions about your business and get instant insights powered by AI',
+      title: 'Mumu',
+      description: 'Ask Mumu questions about your business and get instant insights powered by AI',
     },
     {
       icon: Shield,
@@ -207,14 +207,14 @@ export default function Landing() {
     'Control expenses and cashflow',
     'Calculate business capital automatically',
     'Generate financial reports instantly',
-    'Get AI-powered business insights',
+    'Get insights from Mumu, your AI assistant',
     'Make data-driven decisions',
   ]
 
   const heroStats = [
     { label: 'Live sales', value: '24/7', icon: Activity },
     { label: 'Inventory alerts', value: 'Auto', icon: BellRing },
-    { label: 'Business insights', value: 'AI', icon: Sparkles },
+    { label: 'Business insights', value: 'Mumu', icon: Sparkles },
   ]
 
   const footerProductLinks = [
@@ -405,7 +405,7 @@ export default function Landing() {
                 </li>
                 <li className="flex items-center gap-2.5 text-sm sm:text-base">
                   <Check className="h-4 w-4 flex-shrink-0 text-white/90" strokeWidth={2.5} />
-                  <span>AI business assistant</span>
+                  <span>Mumu — your AI assistant</span>
                 </li>
                 <li className="flex items-center gap-2.5 text-sm sm:text-base">
                   <Check className="h-4 w-4 flex-shrink-0 text-white/90" strokeWidth={2.5} />

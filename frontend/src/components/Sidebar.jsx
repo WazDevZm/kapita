@@ -36,7 +36,7 @@ const personalNavigation = [
 
 const accountNavigation = [
   { name: 'Billing & Access', href: '/app/billing', icon: ShieldCheck },
-  { name: 'AI Assistant', href: '/app/chat', icon: MessageSquare },
+  { name: 'Mumu', href: '/app/chat', icon: MessageSquare },
   { name: 'Settings', href: '/app/settings', icon: Settings },
 ]
 

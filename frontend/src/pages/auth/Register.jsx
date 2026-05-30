@@ -44,6 +44,7 @@ export default function Register() {
         <SignUp
           routing="virtual"
           signInUrl="/login"
+          forceRedirectUrl="/app/dashboard"
           appearance={kapitaClerkAppearance}
         />
       </AuthPageLayout>

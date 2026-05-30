@@ -106,6 +106,7 @@ export default function Login() {
             <SignIn
               routing="virtual"
               signUpUrl="/register"
+              forceRedirectUrl="/app/dashboard"
               appearance={kapitaClerkAppearance}
             />
             <div className="auth-divider">
