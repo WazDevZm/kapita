@@ -21,8 +21,6 @@ import {
   CreditCard,
   HelpCircle,
   Mail,
-  LogIn,
-  UserPlus,
   MapPin,
   Wallet,
   Receipt,
@@ -232,11 +230,6 @@ export default function Landing() {
   const footerLegalLinks = [
     { label: 'Privacy', href: '#footer-legal' },
     { label: 'Terms', href: '#footer-legal' },
-  ]
-
-  const footerQuickLinks = [
-    { label: 'Sign In', href: '/login', icon: LogIn, router: true },
-    { label: 'Get Started', href: '/register', icon: UserPlus, router: true },
   ]
 
   const socialLinks = [
@@ -490,25 +483,6 @@ export default function Landing() {
                 ))}
               </div>
 
-              <div className="mt-6 flex flex-wrap gap-2">
-                {footerQuickLinks.map((item) => (
-                  <Link
-                    key={item.label}
-                    to={item.href}
-                    className="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm font-medium text-slate-700 transition-colors hover:border-primary-200 hover:bg-primary-50 hover:text-primary-700"
-                  >
-                    <item.icon className="h-4 w-4" strokeWidth={1.75} />
-                    {item.label}
-                  </Link>
-                ))}
-                <a
-                  href="mailto:support@kapita.app"
-                  className="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm font-medium text-slate-700 transition-colors hover:border-primary-200 hover:bg-primary-50 hover:text-primary-700"
-                >
-                  <Mail className="h-4 w-4" strokeWidth={1.75} />
-                  Email
-                </a>
-              </div>
             </div>
 
             <div>

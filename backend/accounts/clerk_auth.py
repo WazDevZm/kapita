@@ -215,7 +215,12 @@ def authenticate_clerk_user(request):
     if settings.CLERK_JWT_KEY:
         options_kwargs['jwt_key'] = settings.CLERK_JWT_KEY
 
-    state = authenticate_request(request, AuthenticateRequestOptions(**options_kwargs))
+    try:
+        state = authenticate_request(request, AuthenticateRequestOptions(**options_kwargs))
+    except Exception as exc:
+        logger.warning('Clerk request authentication failed: %s', exc)
+        return None
+
     if not state.is_signed_in:
         return None
 
@@ -223,5 +228,10 @@ def authenticate_clerk_user(request):
     if not clerk_id:
         return None
 
-    user = sync_user_from_clerk(clerk_id, state.payload)
+    try:
+        user = sync_user_from_clerk(clerk_id, state.payload)
+    except Exception as exc:
+        logger.exception('Failed to sync Clerk user %s', clerk_id)
+        return None
+
     return user, state

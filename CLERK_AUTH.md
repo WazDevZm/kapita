@@ -9,7 +9,7 @@ When `VITE_CLERK_PUBLISHABLE_KEY` is **not** set, the app falls back to built-in
 | `@clerk/nextjs` | `@clerk/react` |
 | `@clerk/clerk-react` | `@clerk/react` (replaced) |
 | `<SignedIn>` / `<SignedOut>` | `<Show when="signed-in">` / `<Show when="signed-out">` |
-| `publishableKey` prop on provider | Auto-read from `VITE_CLERK_PUBLISHABLE_KEY` |
+| `publishableKey` prop on provider | Passed from `VITE_CLERK_PUBLISHABLE_KEY` in `main.jsx` |
 
 ---
 
@@ -59,7 +59,7 @@ Restart both servers after changing env vars.
 
 | File | Role |
 |------|------|
-| `main.jsx` | `<ClerkProvider afterSignOutUrl="/">` wraps the app (no manual `publishableKey`) |
+| `main.jsx` | `<ClerkProvider publishableKey={...} afterSignOutUrl="/">` wraps the app |
 | `ClerkAuthBridge.jsx` | Syncs Clerk session → Django profile via `/api/auth/me/` |
 | `LandingAuthNav.jsx` | `<Show>`, `<SignInButton>`, `<SignUpButton>`, `<UserButton>` on landing |
 | `Login.jsx` / `Register.jsx` | Clerk `<SignIn />` / `<SignUp />` |

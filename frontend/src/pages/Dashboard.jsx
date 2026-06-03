@@ -12,7 +12,21 @@ import { StatCard } from '../components/Card'
 import Card from '../components/Card'
 import Loading from '../components/Loading'
 import { analyticsAPI, salesAPI, expensesAPI } from '../services/api'
-import { LineChart, Line, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts'
+import {
+  ComposedChart,
+  Area,
+  Bar,
+  Line,
+  PieChart,
+  Pie,
+  Cell,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+} from 'recharts'
 
 export default function Dashboard() {
   const [loading, setLoading] = useState(true)
@@ -49,6 +63,12 @@ export default function Dashboard() {
   const recordCounts = summary?.record_counts || {}
 
   const COLORS = ['#10b981', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899']
+  const toDateKey = (dateObj) => {
+    const y = dateObj.getFullYear()
+    const m = String(dateObj.getMonth() + 1).padStart(2, '0')
+    const d = String(dateObj.getDate()).padStart(2, '0')
+    return `${y}-${m}-${d}`
+  }
   const formatChartDay = (value) => {
     if (!value) return 'No date'
 
@@ -66,12 +86,51 @@ export default function Dashboard() {
 
     return rawValue
   }
+
+  const salesByDay = new Map(
+    (Array.isArray(dailySales) ? dailySales : []).map((item) => {
+      const rawDay = String(item?.day || '')
+      const dayKey = /^\d{4}-\d{2}-\d{2}/.test(rawDay)
+        ? rawDay.slice(0, 10)
+        : toDateKey(new Date(rawDay))
+
+      return [
+        dayKey,
+        {
+          total: Number(item?.total || 0),
+          count: Number(item?.count || 0),
+        },
+      ]
+    })
+  )
+
+  const baseTrendData = Array.from({ length: 30 }, (_, index) => {
+    const day = new Date()
+    day.setHours(0, 0, 0, 0)
+    day.setDate(day.getDate() - (29 - index))
+
+    const dayKey = toDateKey(day)
+    const values = salesByDay.get(dayKey) || { total: 0, count: 0 }
+
+    return {
+      day: dayKey,
+      dayLabel: formatChartDay(dayKey),
+      total: Number(values.total || 0),
+      count: Number(values.count || 0),
+    }
+  })
+
   const dailySalesChartData = Array.isArray(dailySales)
-    ? dailySales.map((item) => ({
-        ...item,
-        dayLabel: formatChartDay(item?.day),
-        total: Number(item?.total || 0),
-      }))
+    ? baseTrendData.map((item, index, arr) => {
+        const recentWindow = arr.slice(Math.max(0, index - 6), index + 1)
+        const rollingAvg =
+          recentWindow.reduce((sum, point) => sum + point.total, 0) / recentWindow.length
+
+        return {
+          ...item,
+          rollingAvg: Number(rollingAvg.toFixed(2)),
+        }
+      })
     : []
   const expensesChartData = Array.isArray(expensesByCategory)
     ? expensesByCategory.map((item) => ({
@@ -80,8 +139,17 @@ export default function Dashboard() {
         total: Number(item?.total || 0),
       }))
     : []
-  const hasDailySalesData = dailySalesChartData.length > 0
+  const hasDailySalesData = dailySalesChartData.some((item) => item.total > 0 || item.count > 0)
   const hasExpenseData = expensesChartData.length > 0
+  const totalRevenue30 = dailySalesChartData.reduce((sum, item) => sum + item.total, 0)
+  const totalTransactions30 = dailySalesChartData.reduce((sum, item) => sum + item.count, 0)
+  const avgRevenue30 = dailySalesChartData.length
+    ? totalRevenue30 / dailySalesChartData.length
+    : 0
+  const peakDay = dailySalesChartData.reduce(
+    (peak, item) => (item.total > peak.total ? item : peak),
+    { dayLabel: 'N/A', total: 0 }
+  )
 
   return (
     <div className="space-y-6">
@@ -215,35 +283,99 @@ export default function Dashboard() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Revenue Trend */}
         <Card>
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">
-            Revenue Trend (Last 30 Days)
-          </h3>
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">Revenue Trend (Last 30 Days)</h3>
           {hasDailySalesData ? (
-            <ResponsiveContainer width="100%" height={300}>
-              <LineChart data={dailySalesChartData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-                <XAxis dataKey="dayLabel" stroke="#9ca3af" />
-                <YAxis stroke="#9ca3af" />
-                <Tooltip 
-                  contentStyle={{ 
-                    backgroundColor: '#ffffff',
-                    border: '1px solid #e5e7eb',
-                    borderRadius: '8px',
-                    color: '#111827',
-                  }} 
-                />
-                <Legend />
-                <Line 
-                  type="monotone" 
-                  dataKey="total" 
-                  stroke="#10b981" 
-                  strokeWidth={2}
-                  name="Revenue"
-                />
-              </LineChart>
-            </ResponsiveContainer>
+            <>
+              <ResponsiveContainer width="100%" height={320}>
+                <ComposedChart data={dailySalesChartData} margin={{ top: 12, right: 10, left: 0, bottom: 0 }}>
+                  <defs>
+                    <linearGradient id="revenueTrendFill" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#10b981" stopOpacity={0.35} />
+                      <stop offset="95%" stopColor="#10b981" stopOpacity={0.03} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                  <XAxis dataKey="dayLabel" stroke="#9ca3af" minTickGap={20} tick={{ fontSize: 12 }} />
+                  <YAxis
+                    yAxisId="revenue"
+                    stroke="#10b981"
+                    tick={{ fontSize: 12 }}
+                    tickFormatter={(value) => `ZMW ${(Number(value) / 1000).toFixed(0)}k`}
+                  />
+                  <YAxis
+                    yAxisId="transactions"
+                    orientation="right"
+                    stroke="#6366f1"
+                    tick={{ fontSize: 12 }}
+                    allowDecimals={false}
+                  />
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: '#ffffff',
+                      border: '1px solid #e5e7eb',
+                      borderRadius: '8px',
+                      color: '#111827',
+                    }}
+                    formatter={(value, name) => {
+                      if (name === 'Revenue' || name === '7-day Avg') {
+                        return [`ZMW ${Number(value).toLocaleString()}`, name]
+                      }
+                      return [Number(value).toLocaleString(), name]
+                    }}
+                  />
+                  <Legend />
+                  <Area
+                    yAxisId="revenue"
+                    type="monotone"
+                    dataKey="total"
+                    stroke="#10b981"
+                    fill="url(#revenueTrendFill)"
+                    strokeWidth={2}
+                    name="Revenue"
+                  />
+                  <Line
+                    yAxisId="revenue"
+                    type="monotone"
+                    dataKey="rollingAvg"
+                    stroke="#0ea5e9"
+                    strokeWidth={2}
+                    dot={false}
+                    name="7-day Avg"
+                  />
+                  <Bar
+                    yAxisId="transactions"
+                    dataKey="count"
+                    fill="#6366f1"
+                    opacity={0.35}
+                    barSize={12}
+                    radius={[4, 4, 0, 0]}
+                    name="Transactions"
+                  />
+                </ComposedChart>
+              </ResponsiveContainer>
+
+              <div className="mt-4 grid grid-cols-2 gap-3 text-sm md:grid-cols-4">
+                <div className="rounded-lg bg-gray-50 px-3 py-2">
+                  <p className="text-xs uppercase tracking-wide text-gray-500">30-day Revenue</p>
+                  <p className="mt-1 font-semibold text-gray-900">ZMW {totalRevenue30.toLocaleString()}</p>
+                </div>
+                <div className="rounded-lg bg-gray-50 px-3 py-2">
+                  <p className="text-xs uppercase tracking-wide text-gray-500">Avg / Day</p>
+                  <p className="mt-1 font-semibold text-gray-900">ZMW {avgRevenue30.toLocaleString(undefined, { maximumFractionDigits: 0 })}</p>
+                </div>
+                <div className="rounded-lg bg-gray-50 px-3 py-2">
+                  <p className="text-xs uppercase tracking-wide text-gray-500">Peak Day</p>
+                  <p className="mt-1 font-semibold text-gray-900">{peakDay.dayLabel}</p>
+                  <p className="text-xs text-gray-600">ZMW {Number(peakDay.total || 0).toLocaleString()}</p>
+                </div>
+                <div className="rounded-lg bg-gray-50 px-3 py-2">
+                  <p className="text-xs uppercase tracking-wide text-gray-500">Transactions</p>
+                  <p className="mt-1 font-semibold text-gray-900">{totalTransactions30.toLocaleString()}</p>
+                </div>
+              </div>
+            </>
           ) : (
-            <div className="flex h-[300px] items-center justify-center rounded-xl border border-dashed border-gray-300 text-sm text-gray-500">
+            <div className="flex h-[320px] items-center justify-center rounded-xl border border-dashed border-gray-300 text-sm text-gray-500">
               No sales data yet. Add sales to populate this chart.
             </div>
           )}

@@ -93,16 +93,27 @@ export default function Chat() {
     scrollToBottom()
   }, [messages, loading])
 
+  const buildConversationContext = (chatMessages) =>
+    chatMessages
+      .filter((message) => !message.isError)
+      .filter((message) => message.role === 'user' || message.role === 'assistant')
+      .filter((message) => message.content !== WELCOME)
+      .map((message) => ({ role: message.role, content: message.content }))
+
   const sendMessage = async (text) => {
     const userMessage = text.trim()
     if (!userMessage || loading) return
 
+    const nextMessages = [...messages, { role: 'user', content: userMessage }]
     setInput('')
-    setMessages((prev) => [...prev, { role: 'user', content: userMessage }])
+    setMessages(nextMessages)
     setLoading(true)
 
     try {
-      const response = await chatAPI.sendMessage(userMessage)
+      const response = await chatAPI.sendMessage(
+        userMessage,
+        buildConversationContext(nextMessages),
+      )
       setMessages((prev) => [
         ...prev,
         { role: 'assistant', content: response.data.response },

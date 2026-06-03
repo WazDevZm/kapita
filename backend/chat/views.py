@@ -19,9 +19,12 @@ class ChatAssistantView(APIView):
 
     def post(self, request):
         user_message = request.data.get('message', '')
+        messages = request.data.get('messages', [])
 
         if not user_message:
             return Response({'error': 'Message is required'}, status=400)
+
+        conversation = self._sanitize_conversation(messages, user_message)
 
         context = self.get_business_context(request.user)
         system_prompt = self.create_system_prompt(context)
@@ -30,6 +33,7 @@ class ChatAssistantView(APIView):
             assistant_response = chat_completion(
                 system_prompt=system_prompt,
                 user_message=user_message,
+                messages=conversation,
             )
             return Response({
                 'response': assistant_response,
@@ -49,6 +53,26 @@ class ChatAssistantView(APIView):
             return Response({
                 'error': f'Failed to get AI response: {str(exc)}',
             }, status=500)
+
+    def _sanitize_conversation(self, messages, user_message):
+        """Allow only safe, recent conversation turns from user/assistant."""
+        cleaned = []
+        if isinstance(messages, list):
+            for item in messages:
+                if not isinstance(item, dict):
+                    continue
+                role = (item.get('role') or '').strip()
+                content = (item.get('content') or '').strip()
+                if role in {'user', 'assistant'} and content:
+                    cleaned.append({'role': role, 'content': content})
+
+        # Keep context window bounded to reduce token usage and latency.
+        cleaned = cleaned[-20:]
+
+        if not cleaned or cleaned[-1]['role'] != 'user' or cleaned[-1]['content'] != user_message:
+            cleaned.append({'role': 'user', 'content': user_message})
+
+        return cleaned
 
     def get_business_context(self, user):
         """Gather all relevant business data for context"""
@@ -194,8 +218,14 @@ LOW STOCK ALERTS:
 RECENT ACTIVITY:
 - Sales in last 7 days: {context['recent_sales_count']}
 
-Answer questions about the business using this data. Be helpful, concise, and provide
-actionable insights. When introducing yourself or signing off, use the name Mumu.
+Answer questions about the business using this data.
+Response style rules:
+- Be accurate, practical, and concise by default.
+- For complex questions, use short titled sections such as "Summary", "Analysis", and "Action Plan".
+- Use bullets for steps and recommendations.
+- Keep explanations readable and avoid unnecessary verbosity.
+
+When introducing yourself or signing off, use the name Mumu.
 When discussing money, always use {context['currency']} as the currency.
 If asked about profitability, consider both profit and expenses. If asked about cash flow,
 explain the difference between revenue and available cash."""

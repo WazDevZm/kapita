@@ -251,7 +251,7 @@ export const aiAPI = {
 
 // Chat API
 export const chatAPI = {
-  sendMessage: (message) => api.post('/chat/', { message }),
+  sendMessage: (message, messages = []) => api.post('/chat/', { message, messages }),
 }
 
 // Notifications API

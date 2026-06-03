@@ -89,7 +89,7 @@ export default function Reports() {
     }
   }
 
-  const exportToPDF = () => {
+  const exportToPDF = async () => {
     if (!reportData) return
 
     const {
@@ -110,34 +110,98 @@ export default function Reports() {
     const recommendationsList = Array.isArray(recommendations) ? recommendations : []
 
     // Title page
+    doc.setFillColor(15, 118, 110)
+    doc.rect(0, 0, 210, 42, 'F')
+    doc.setFillColor(230, 250, 245)
+    doc.rect(0, 42, 210, 10, 'F')
+
     doc.setFontSize(22)
     doc.setFont(undefined, 'bold')
-    doc.setTextColor(15, 118, 110)
-    doc.text('KAPITA', 105, 28, { align: 'center' })
-
-    doc.setFontSize(16)
-    doc.setTextColor(17, 24, 39)
-    doc.text('Business Performance Report', 105, 40, { align: 'center' })
-
+    doc.setTextColor(255, 255, 255)
+    doc.setFontSize(24)
+    doc.setFont(undefined, 'bold')
+    doc.text('KAPITA', 14, 20)
+    
     doc.setFontSize(11)
     doc.setFont(undefined, 'normal')
-    doc.text(info?.business_name || 'Your Business', 105, 52, { align: 'center' })
-    if (info?.address) doc.text(info.address, 105, 59, { align: 'center' })
+    doc.text('Smart Business Tracking & Analytics', 14, 28)
+
+    doc.setFontSize(16)
+    doc.setFont(undefined, 'bold')
+    doc.text('Business Intelligence Report', 14, 38)
+
+    doc.setTextColor(17, 24, 39)
+    doc.setFontSize(18)
+    doc.setFont(undefined, 'bold')
+    doc.text('Business Performance Report', 14, 66)
+
+    doc.setDrawColor(209, 213, 219)
+    doc.roundedRect(14, 72, 182, 44, 3, 3)
+    doc.setFontSize(10)
+    doc.setFont(undefined, 'bold')
+    doc.text('Business', 18, 80)
+    doc.setFont(undefined, 'normal')
+    doc.text(info?.business_name || 'Your Business', 18, 87)
+    if (info?.address) doc.text(info.address, 18, 93)
+    doc.text(`Period: ${info?.period?.label || 'Report Period'}`, 18, 101)
+    doc.text(`Generated: ${formatDate(info?.generated_at)}`, 18, 108)
 
     const contactParts = [info?.phone, info?.email, info?.website].filter(Boolean)
     if (contactParts.length) {
-      doc.text(contactParts.join(' | '), 105, 66, { align: 'center' })
+      doc.setFontSize(9)
+      doc.text(contactParts.join(' | '), 18, 114)
     }
 
-    const regParts = [info?.tin && `TIN: ${info.tin}`, info?.vat_number && `VAT: ${info.vat_number}`, info?.business_registration_number && `Reg: ${info.business_registration_number}`].filter(Boolean)
+    const regParts = [
+      info?.tin && `TIN: ${info.tin}`,
+      info?.vat_number && `VAT: ${info.vat_number}`,
+      info?.business_registration_number && `Reg: ${info.business_registration_number}`,
+    ].filter(Boolean)
     if (regParts.length) {
       doc.setFontSize(9)
-      doc.text(regParts.join('  •  '), 105, 73, { align: 'center' })
+      doc.text(regParts.join('  •  '), 18, 120)
     }
 
-    doc.setFontSize(11)
-    doc.text(info?.period?.label || 'Report Period', 105, 84, { align: 'center' })
-    doc.text(`Generated: ${formatDate(info?.generated_at)}`, 105, 92, { align: 'center' })
+    const tileWidth = 56
+    const tileHeight = 24
+    const tileYStart = 132
+    const tiles = [
+      { label: 'Revenue', value: formatMoney(summary?.total_sales, currency), color: [16, 185, 129] },
+      { label: 'Expenses', value: formatMoney(summary?.total_expenses, currency), color: [239, 68, 68] },
+      { label: 'Net Profit', value: formatMoney(summary?.net_profit, currency), color: [37, 99, 235] },
+      { label: 'Transactions', value: String(summary?.transaction_count || 0), color: [124, 58, 237] },
+      { label: 'Outstanding Credit', value: formatMoney(credits?.outstanding, currency), color: [217, 119, 6] },
+      { label: 'Profit Margin', value: `${Number(summary?.profit_margin || 0).toFixed(2)}%`, color: [6, 95, 70] },
+    ]
+
+    tiles.forEach((tile, index) => {
+      const row = Math.floor(index / 3)
+      const col = index % 3
+      const x = 14 + col * (tileWidth + 7)
+      const y = tileYStart + row * (tileHeight + 8)
+
+      doc.setDrawColor(229, 231, 235)
+      doc.roundedRect(x, y, tileWidth, tileHeight, 3, 3)
+      doc.setFillColor(tile.color[0], tile.color[1], tile.color[2])
+      doc.rect(x, y, tileWidth, 5, 'F')
+
+      doc.setTextColor(75, 85, 99)
+      doc.setFontSize(8)
+      doc.setFont(undefined, 'bold')
+      doc.text(tile.label.toUpperCase(), x + 3, y + 10)
+
+      doc.setTextColor(17, 24, 39)
+      doc.setFontSize(10)
+      doc.setFont(undefined, 'bold')
+      const valueLines = doc.splitTextToSize(tile.value, tileWidth - 6)
+      doc.text(valueLines[0] || '-', x + 3, y + 17)
+    })
+
+    doc.setTextColor(75, 85, 99)
+    doc.setFontSize(9)
+    doc.setFont(undefined, 'normal')
+    doc.text('Prepared by Kapita Analytics. This report is generated from live records in your Kapita account.', 14, 205)
+    doc.text('Use this report to review trends, spot risks early, and make better business decisions.', 14, 211)
 
     // Executive summary
     doc.addPage()
