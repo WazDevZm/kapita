@@ -31,3 +31,4 @@ local_settings.py
 media/
 staticfiles/
 .DS_Store
+.vercel

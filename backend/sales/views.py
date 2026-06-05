@@ -14,13 +14,19 @@ import io
 from django.http import HttpResponse
 from django.conf import settings
 import os
-from reportlab.lib.pagesizes import A4
-from reportlab.lib import colors
-from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
-from reportlab.lib.units import mm
-from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, Image
-from reportlab.graphics.barcode.qr import QrCodeWidget
-from reportlab.graphics.shapes import Drawing
+
+# Optional reportlab import for PDF generation
+try:
+    from reportlab.lib.pagesizes import A4
+    from reportlab.lib import colors
+    from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+    from reportlab.lib.units import mm
+    from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, Image
+    from reportlab.graphics.barcode.qr import QrCodeWidget
+    from reportlab.graphics.shapes import Drawing
+    REPORTLAB_AVAILABLE = True
+except ImportError:
+    REPORTLAB_AVAILABLE = False
 
 
 class SaleViewSet(viewsets.ModelViewSet):
@@ -135,6 +141,13 @@ class SaleViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=['get'])
     def receipt(self, request, pk=None):
         """Generate a polished PDF receipt for a sale and return it as an attachment."""
+        
+        # Check if reportlab is available
+        if not REPORTLAB_AVAILABLE:
+            return Response({
+                'detail': 'PDF generation is not available on this deployment. Reportlab library is not installed.'
+            }, status=status.HTTP_503_SERVICE_UNAVAILABLE)
+        
         try:
             sale = self.get_queryset().get(pk=pk)
         except Sale.DoesNotExist:

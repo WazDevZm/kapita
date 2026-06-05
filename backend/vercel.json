@@ -17,5 +17,10 @@
   ],
   "env": {
     "DJANGO_SETTINGS_MODULE": "kapita.settings"
+  },
+  "build": {
+    "env": {
+      "DJANGO_SETTINGS_MODULE": "kapita.settings"
+    }
   }
 }
