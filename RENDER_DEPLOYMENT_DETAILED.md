@@ -8,6 +8,7 @@
 5. [Create an Admin User](#4-create-an-admin-user)
 6. [Deploy Frontend to Vercel (Optional)](#5-deploy-frontend-to-vercel-optional)
 7. [Verify Everything Works](#6-verify-everything-works)
+8. [Troubleshooting Guide](#troubleshooting-guide)
 
 ---
 
@@ -17,7 +18,7 @@ Before you start, you will need:
 1. A **GitHub or GitLab account** with your Kapita code pushed
 2. A [Render account](https://dashboard.render.com/register) (free tier works great!)
 3. A [Neon account](https://console.neon.tech/app/projects) (free PostgreSQL database)
-4. A [Clerk account](https://dashboard.clerk.com/) (if you want Clerk auth)
+4. A [Clerk account](https://dashboard.clerk.com/) (optional, for Clerk authentication)
 
 ---
 
@@ -58,8 +59,9 @@ Render is a platform-as-a-service that makes deploying Django super easy!
 1. From Render Dashboard, click **Blueprints** in the left sidebar
 2. Click **New Blueprint**
 3. Find your Kapita repository in the list and click **Connect**
-4. Review the blueprint (it uses your `render.yaml` file!)
+4. Review the blueprint (it uses your improved `render.yaml` file!)
    - You'll see it's set to create a `kapita-api` web service on the free plan
+   - The blueprint has descriptions for each env var to make it easier!
 5. Click **Apply** (wait 10-15 seconds for it to set things up)
 
 ### Step 2.3: Wait for Initial Deployment
@@ -79,7 +81,7 @@ Now we need to tell Render about our database and other settings!
 2. Click **Environment** in the left sidebar
 
 ### Step 3.2: Add Required Variables
-You will need to set these variables:
+You will need to set these variables (the blueprint has helpful descriptions already!):
 
 | Variable | Value |
 |----------|-------|
@@ -96,10 +98,18 @@ If you want to use Clerk authentication, add these too:
 | `CLERK_SECRET_KEY` | (from Clerk Dashboard → **API Keys** → **Secret Key**) |
 | `CLERK_AUTHORIZED_PARTIES` | Your frontend URL |
 
-### Step 3.4: Save and Redeploy
+### Step 3.4: Add OpenRouter Variables (Optional, for AI Features)
+If you want AI chat/analytics:
+
+| Variable | Value |
+|----------|-------|
+| `OPENROUTER_API_KEY` | (from your OpenRouter account) |
+| `OPENROUTER_MODEL` | (e.g., `google/gemini-2.5-flash`) |
+
+### Step 3.5: Save and Redeploy
 1. Click **Save Changes** at the bottom
 2. Render will automatically redeploy your service with the new settings!
-3. Wait for it to go back to **Live** status
+3. Wait for it to go back to **Live** status (check the **Events** tab to see progress)
 
 ---
 
@@ -138,13 +148,14 @@ Now let's deploy the frontend!
 
 ### Step 5.2: Configure Project Settings
 1. Under **Project Name**, type `kapita-frontend` (or whatever you want!)
-2. Leave other settings as default
-3. Click **Environment Variables** (expand this section!)
-4. Add this variable:
+2. Under **Root Directory**, select `frontend`
+3. Leave other settings as default
+4. Click **Environment Variables** (expand this section!)
+5. Add this variable:
    - **Name**: `VITE_API_URL`
    - **Value**: `https://kapita-api.onrender.com/api` (replace `kapita-api` with your backend service name!)
-5. Click **Add**
-6. Click **Deploy**!
+6. Click **Add**
+7. Click **Deploy**!
 
 ### Step 5.3: Wait for Deployment
 Vercel will build and deploy your frontend in 1-3 minutes!
@@ -157,43 +168,93 @@ When it's done, you'll see your frontend URL like `https://kapita-frontend.verce
 Let's make sure all is up and running!
 
 ### Step 6.1: Test Backend Health Check
-1. Go to `https://kapita-api.onrender.com/admin` (replace with your backend URL)
-2. You should see the Django admin login page!
+1. Go to `https://kapita-api.onrender.com/` (replace with your backend URL)
+2. You should see a JSON response:
+   ```json
+   {
+     "name": "Kapita API",
+     "status": "ok",
+     "api_base": "/api/",
+     "docs_hint": "Use /api/auth/login/, /api/products/, etc."
+   }
+   ```
 
-### Step 6.2: Log In to Frontend
+### Step 6.2: Test Django Admin
+1. Go to `https://kapita-api.onrender.com/admin`
+2. Log in with the admin user you created
+3. You should see the Django admin dashboard!
+
+### Step 6.3: Log In to Frontend
 1. Open your frontend URL (from Vercel)
 2. Log in with your admin email and password (from Step 4.3)
 3. You should see the Kapita dashboard! 🎉
 
 ---
 
-## 🚨 Troubleshooting Common Issues
+## Troubleshooting Guide
 
-### Problem: Database Connection Error
+### Common Issues and Fixes
+
+#### Problem: Blueprint Error in Render
+- Make sure your `render.yaml` file is committed to your repo and in the root directory!
+- Double-check the indentation in `render.yaml` (Render is picky about YAML!)
+
+#### Problem: Database Connection Error
 - Check your `DATABASE_URL` is copied correctly from Neon
 - Make sure it ends with `?sslmode=require`
 - Try re-creating your Neon database
+- Check Render **Logs** tab for exact error messages
 
-### Problem: CORS Errors When Using Frontend
+#### Problem: CORS Errors When Using Frontend
 - Double-check `CORS_ALLOWED_ORIGINS` in Render settings
 - Make sure it matches your frontend URL *exactly* (no trailing slashes!)
+- Add both `http://localhost:3000` and your production frontend URL if needed
 - Try redeploying your backend after changing
 
-### Problem: Can't Log In
+#### Problem: Can't Log In
 - Make sure you ran `python manage.py create_admin` in Render Shell
 - If you forgot your password, run this in Render Shell:
   ```bash
   python manage.py createsuperuser
   ```
-  (this is different from `create_admin` but also works!)
+  (this creates a superuser that can log in to /admin too!)
 
-### Problem: Deployment Fails
+#### Problem: Deployment Fails
 - Check Render's **Logs** tab for error messages
 - Make sure your `requirements.txt` is up to date
-- Try re-deploying manually from Render dashboard
+- Try re-deploying manually from Render dashboard (click **Manual Deploy** → **Deploy latest commit**)
+- Check that your repo has the latest `render.yaml` file!
+
+#### Problem: Static Files Not Loading
+- Make sure `DEBUG=False` is set (it is by default in our blueprint!)
+- Check that `collectstatic` ran (it's part of the build command!)
+- Check Render **Logs** for any static files errors
+
+#### Problem: Outgoing Payments or Cash Flow Not Showing
+- Make sure all migrations ran (they should, thanks to releaseCommand!)
+- If not, run in Render Shell:
+  ```bash
+  python manage.py migrate
+  ```
 
 ---
 
 ## 🎉 You're Done!
 
 Congratulations! Your Kapita app is now fully deployed on Render and Vercel! 🚀
+
+### Quick Recap of What's Live:
+- ✅ Backend API: https://kapita-api.onrender.com
+- ✅ PostgreSQL Database: Managed by Neon (free tier!)
+- ✅ Frontend: https://kapita-frontend.vercel.app (optional)
+- ✅ Admin User: Created and ready to go!
+- ✅ Kapita Branded PDFs: Working perfectly!
+
+### Next Steps:
+1. Add products and customers!
+2. Record sales and expenses!
+3. Try the outgoing payments feature!
+4. Download your first cash flow statement PDF!
+
+Enjoy your fully deployed Kapita app! 🎊
+
