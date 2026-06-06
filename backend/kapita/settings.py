@@ -96,7 +96,7 @@ WSGI_APPLICATION = 'kapita.wsgi.application'
 DATABASE_URL = config('DATABASE_URL', default='')
 DB_ENGINE = config('DB_ENGINE', default='sqlite3')
 
-if DATABASE_URL:
+if DATABASE_URL and DATABASE_URL.strip():
     DATABASES = {
         'default': dj_database_url.parse(
             DATABASE_URL,
