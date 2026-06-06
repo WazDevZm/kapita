@@ -14,17 +14,27 @@ import {
   MessageSquare,
   ShieldCheck,
   Wallet,
-  X
+  X,
+  Tag,
+  PackageOpen,
+  UserPlus,
+  ArrowRightCircle,
+  TrendingDown
 } from 'lucide-react'
 
 const businessNavigation = [
   { name: 'Dashboard', href: '/app/dashboard', icon: LayoutDashboard },
   { name: 'Products', href: '/app/products', icon: Package },
   { name: 'Sales', href: '/app/sales', icon: ShoppingCart },
+  { name: 'Promotions', href: '/app/promotions', icon: Tag },
+  { name: 'Suppliers', href: '/app/suppliers', icon: UserPlus },
+  { name: 'Purchase Orders', href: '/app/purchase-orders', icon: PackageOpen },
   { name: 'Customers', href: '/app/customers', icon: Users },
   { name: 'Credits', href: '/app/credits', icon: CreditCard },
   { name: 'Expenses', href: '/app/expenses', icon: Receipt },
   { name: 'Reinvestments', href: '/app/reinvestments', icon: TrendingUp },
+  { name: 'Outgoing Payments', href: '/app/outgoing-payments', icon: ArrowRightCircle },
+  { name: 'Cash Flow', href: '/app/cash-flow', icon: TrendingDown },
   { name: 'Analytics', href: '/app/analytics', icon: BarChart3 },
   { name: 'Projections', href: '/app/projections', icon: LineChart },
   { name: 'Reports', href: '/app/reports', icon: FileText },

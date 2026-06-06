@@ -1,5 +1,6 @@
 import axios from 'axios'
 import { isClerkEnabled } from '../config/auth'
+import { useAuthStore } from '../store/authStore'
 
 const API_URL =
   import.meta.env.VITE_API_URL ||
@@ -65,6 +66,20 @@ api.interceptors.response.use(
     const subscriptionBlocked =
       typeof detail === 'string' &&
       detail.toLowerCase().includes('trial or subscription')
+    const isTokenError =
+      typeof detail === 'string' &&
+      (detail.toLowerCase().includes('token_not_valid') ||
+        detail.toLowerCase().includes('given token not valid'))
+
+    // If it's a token error, clear storage and redirect
+    if (isTokenError) {
+      useAuthStore.getState().logout({ skipClerk: true })
+      if (!isClerkEnabled) {
+        const isAdminPath = window.location.pathname.startsWith('/admin')
+        window.location.href = isAdminPath ? '/admin/login' : '/login'
+      }
+      return Promise.reject(error)
+    }
 
     if (error.response?.status === 401 && subscriptionBlocked) {
       if (!window.location.pathname.startsWith('/app/billing')) {
@@ -102,8 +117,7 @@ api.interceptors.response.use(
         originalRequest.headers.Authorization = `Bearer ${access}`
         return api(originalRequest)
       } catch (refreshError) {
-        localStorage.removeItem('access_token')
-        localStorage.removeItem('refresh_token')
+        useAuthStore.getState().logout({ skipClerk: true })
         if (!isClerkEnabled) {
           const isAdminPath = window.location.pathname.startsWith('/admin')
           window.location.href = isAdminPath ? '/admin/login' : '/login'
@@ -148,7 +162,10 @@ export const salesAPI = {
   create: (data) => api.post('/sales/', data),
   getSummary: (params) => api.get('/sales/summary/', { params }),
   getDailySales: () => api.get('/sales/daily_sales/'),
-  getTopProducts: (limit = 10) => api.get('/sales/top_products/', { params: { limit } }),
+  getTopProducts: (params = {}) => {
+    const limit = typeof params === 'number' ? params : (params.limit || 10);
+    return api.get('/sales/top_products/', { params: { limit } });
+  },
   getRecent: (limit = 10) => api.get('/sales/recent/', { params: { limit } }),
   getReceipt: (id) => api.get(`/sales/${id}/receipt/`, { responseType: 'blob' }),
 }
@@ -212,6 +229,18 @@ export const analyticsAPI = {
   getProjections: (params) => api.get('/analytics/projections/', { params }),
   getMonthly: (params) => api.get('/analytics/monthly/', { params }),
   getComprehensiveReport: (params) => api.get('/analytics/comprehensive-report/', { params }),
+  getCashFlowStatement: (params) => api.get('/analytics/cash-flow-statement/', { params }),
+  getCashFlowStatementPDF: (params) => api.get('/analytics/cash-flow-statement/pdf/', { params, responseType: 'blob' }),
+}
+
+// Outgoing Payments API
+export const outgoingPaymentsAPI = {
+  getAll: (params) => api.get('/outgoing-payments/', { params }),
+  getOne: (id) => api.get(`/outgoing-payments/${id}/`),
+  create: (data) => api.post('/outgoing-payments/', data),
+  update: (id, data) => api.put(`/outgoing-payments/${id}/`, data),
+  delete: (id) => api.delete(`/outgoing-payments/${id}/`),
+  getReceipt: (id) => api.get(`/outgoing-payments/${id}/receipt/`, { responseType: 'blob' }),
 }
 
 // Billing + subscription APIs
@@ -262,6 +291,38 @@ export const notificationsAPI = {
   markRead: (id) => api.patch(`/notifications/${id}/mark_read/`),
   markAllRead: () => api.post('/notifications/mark_all_read/'),
   delete: (id) => api.delete(`/notifications/${id}/`),
+}
+
+// Promotions API
+export const promotionsAPI = {
+  getAll: (params) => api.get('/promotions/', { params }),
+  getActive: () => api.get('/promotions/active/'),
+  getForProduct: (productId) => api.get('/promotions/for_product/', { params: { product_id: productId } }),
+  getOne: (id) => api.get(`/promotions/${id}/`),
+  create: (data) => api.post('/promotions/', data),
+  update: (id, data) => api.put(`/promotions/${id}/`, data),
+  delete: (id) => api.delete(`/promotions/${id}/`),
+  toggleStatus: (id) => api.post(`/promotions/${id}/toggle_status/`),
+  calculateDiscount: (data) => api.post('/promotions/calculate_discount/', data),
+}
+
+// Suppliers API
+export const suppliersAPI = {
+  getAll: (params) => api.get('/suppliers/', { params }),
+  getOne: (id) => api.get(`/suppliers/${id}/`),
+  create: (data) => api.post('/suppliers/', data),
+  update: (id, data) => api.put(`/suppliers/${id}/`, data),
+  delete: (id) => api.delete(`/suppliers/${id}/`),
+}
+
+// Purchase Orders API
+export const purchaseOrdersAPI = {
+  getAll: (params) => api.get('/purchase-orders/', { params }),
+  getOne: (id) => api.get(`/purchase-orders/${id}/`),
+  create: (data) => api.post('/purchase-orders/', data),
+  update: (id, data) => api.put(`/purchase-orders/${id}/`, data),
+  delete: (id) => api.delete(`/purchase-orders/${id}/`),
+  receive: (id) => api.post(`/purchase-orders/${id}/receive/`),
 }
 
 export default api

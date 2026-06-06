@@ -42,15 +42,15 @@ export default function AdminLogin() {
       }
     >
       <div className="auth-notice mb-5">
-        <p className="auth-notice-title">Local dev credentials</p>
+        <p className="auth-notice-title">Admin credentials</p>
         <p className="mt-1.5">
           Username: <code className="font-mono text-primary-800">admin</code>
         </p>
         <p>
-          Password: <code className="font-mono text-primary-800">admin12345</code>
+          Password: <code className="font-mono text-primary-800">admin123</code>
         </p>
         <p className="mt-2 text-xs text-primary-800/75">
-          Reset with: <code className="font-mono">python manage.py create_admin</code>
+          Reset with: <code className="font-mono">python create_admin.py</code>
         </p>
       </div>
 

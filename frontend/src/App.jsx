@@ -13,6 +13,9 @@ import Register from './pages/auth/Register'
 import Dashboard from './pages/Dashboard'
 import Products from './pages/Products'
 import Sales from './pages/Sales'
+import Promotions from './pages/Promotions'
+import Suppliers from './pages/Suppliers'
+import PurchaseOrders from './pages/PurchaseOrders'
 import Customers from './pages/Customers'
 import Credits from './pages/Credits'
 import Expenses from './pages/Expenses'
@@ -24,6 +27,8 @@ import Projections from './pages/Projections'
 import Chat from './pages/Chat'
 import Billing from './pages/Billing'
 import PersonalFinance from './pages/personal/PersonalFinance'
+import OutgoingPayments from './pages/OutgoingPayments'
+import CashFlowStatement from './pages/CashFlowStatement'
 import AdminLogin from './pages/admin/Login'
 import AdminLayout from './components/AdminLayout'
 import AdminOverview from './pages/admin/Overview'
@@ -31,6 +36,8 @@ import AdminUsers from './pages/admin/Users'
 import AdminPayments from './pages/admin/Payments'
 import AdminSubscriptions from './pages/admin/Subscriptions'
 import AdminActivity from './pages/admin/Activity'
+import AdminSuppliers from './pages/admin/Suppliers'
+import AdminPurchaseOrders from './pages/admin/PurchaseOrders'
 import NotFound from './pages/NotFound'
 
 function UserArea({ children }) {
@@ -143,6 +150,8 @@ function App() {
           <Route path="users" element={<AdminUsers />} />
           <Route path="payments" element={<AdminPayments />} />
           <Route path="subscriptions" element={<AdminSubscriptions />} />
+          <Route path="suppliers" element={<AdminSuppliers />} />
+          <Route path="purchase-orders" element={<AdminPurchaseOrders />} />
           <Route path="activity" element={<AdminActivity />} />
         </Route>
 
@@ -160,10 +169,15 @@ function App() {
           <Route path="dashboard" element={<Dashboard />} />
           <Route path="products" element={<Products />} />
           <Route path="sales" element={<Sales />} />
+          <Route path="promotions" element={<Promotions />} />
+          <Route path="suppliers" element={<Suppliers />} />
+          <Route path="purchase-orders" element={<PurchaseOrders />} />
           <Route path="customers" element={<Customers />} />
           <Route path="credits" element={<Credits />} />
           <Route path="expenses" element={<Expenses />} />
           <Route path="reinvestments" element={<Reinvestments />} />
+          <Route path="outgoing-payments" element={<OutgoingPayments />} />
+          <Route path="cash-flow" element={<CashFlowStatement />} />
           <Route path="analytics" element={<Analytics />} />
           <Route path="reports" element={<Reports />} />
           <Route path="projections" element={<Projections />} />

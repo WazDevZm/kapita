@@ -10,6 +10,8 @@ import {
   UploadCloud,
   Users,
   X,
+  UserPlus,
+  PackageOpen,
 } from 'lucide-react'
 import { useAuthStore } from '../store/authStore'
 
@@ -18,6 +20,8 @@ const navItems = [
   { name: 'Users', href: '/admin/users', icon: Users },
   { name: 'Payments', href: '/admin/payments', icon: UploadCloud },
   { name: 'Subscriptions', href: '/admin/subscriptions', icon: BadgeCheck },
+  { name: 'Suppliers', href: '/admin/suppliers', icon: UserPlus },
+  { name: 'Purchase Orders', href: '/admin/purchase-orders', icon: PackageOpen },
   { name: 'Activity', href: '/admin/activity', icon: Activity },
 ]
 

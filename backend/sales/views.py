@@ -174,9 +174,14 @@ class SaleViewSet(viewsets.ModelViewSet):
         amount_paid = sale.deposit_amount if sale.payment_type == 'credit' else sale.total_amount
         balance_due = sale.remaining_balance if sale.payment_type == 'credit' else 0
         subtotal = sale.quantity * sale.unit_price
-        tax_amount = sale.total_amount - subtotal if sale.total_amount > subtotal else 0
-        discount_amount = 0
-        shipping_amount = 0
+        
+        # Calculate discount from sale
+        discount_amount = float(sale.discount_amount) if sale.discount_amount else 0
+        promotion_name = sale.promotion_name or ''
+        discount_type = sale.discount_type or 'none'
+        
+        tax_amount = 0  # No tax calculation for now
+        shipping_amount = 0  # No shipping for now
         grand_total = sale.total_amount
 
         def money(value):
@@ -380,6 +385,37 @@ class SaleViewSet(viewsets.ModelViewSet):
         elements.append(Paragraph('Itemized Details', section_style))
         elements.append(items)
         elements.append(Spacer(1, 4 * mm))
+
+        # Add promotion/discount section if applicable
+        if discount_amount > 0 and discount_type != 'none':
+            promo_header = Paragraph('💰 Discount Applied', section_style)
+            elements.append(promo_header)
+            
+            discount_info_lines = []
+            if promotion_name:
+                discount_info_lines.append(f'<b>Promotion:</b> {promotion_name}')
+            
+            if discount_type == 'percentage':
+                discount_pct = (float(sale.discount_value) if sale.discount_value else 0)
+                discount_info_lines.append(f'<b>Type:</b> {discount_pct}% Off')
+            elif discount_type == 'fixed':
+                discount_info_lines.append(f'<b>Type:</b> Fixed Amount Discount')
+            
+            discount_info_lines.append(f'<b>You Saved:</b> {money(discount_amount)}')
+            
+            promo_content = Paragraph('<br/>'.join(discount_info_lines), base)
+            
+            promo_card = Table([[promo_content]], colWidths=[178 * mm])
+            promo_card.setStyle(TableStyle([
+                ('BACKGROUND', (0, 0), (-1, -1), colors.HexColor('#d1fae5')),  # Light green
+                ('BOX', (0, 0), (-1, -1), 0.7, colors.HexColor('#10b981')),  # Green border
+                ('LEFTPADDING', (0, 0), (-1, -1), 10),
+                ('RIGHTPADDING', (0, 0), (-1, -1), 10),
+                ('TOPPADDING', (0, 0), (-1, -1), 8),
+                ('BOTTOMPADDING', (0, 0), (-1, -1), 8),
+            ]))
+            elements.append(promo_card)
+            elements.append(Spacer(1, 4 * mm))
 
         summary_rows = [
             ['Subtotal', money(subtotal)],

@@ -32,6 +32,11 @@ urlpatterns = [
     path('api/personal/', include('personal_finance.urls')),
     path('api/analytics/', include('analytics.urls')),
     path('api/chat/', include('chat.urls')),
+    path('api/promotions/', include('promotions.urls')),
+    path('api/payments/', include('payments.urls')),
+    path('api/suppliers/', include('suppliers.urls')),
+    path('api/purchase-orders/', include('purchase_orders.urls')),
+    path('api/outgoing-payments/', include('outgoing_payments.urls')),
 ]
 
 if settings.DEBUG:

@@ -1,17 +1,25 @@
 import { useEffect, useState } from 'react'
-import { Plus, Search } from 'lucide-react'
+import { Plus, Search, Tag, Percent } from 'lucide-react'
 import Card from '../components/Card'
 import Table from '../components/Table'
 import Modal from '../components/Modal'
 import Loading from '../components/Loading'
-import { salesAPI, productsAPI, customersAPI } from '../services/api'
+import { salesAPI, productsAPI, customersAPI, promotionsAPI } from '../services/api'
 
 export default function Sales() {
   const [sales, setSales] = useState([])
   const [products, setProducts] = useState([])
   const [customers, setCustomers] = useState([])
+  const [activePromotions, setActivePromotions] = useState([])
   const [loading, setLoading] = useState(true)
   const [showModal, setShowModal] = useState(false)
+  const [showAddCustomer, setShowAddCustomer] = useState(false)
+  const [newCustomerData, setNewCustomerData] = useState({
+    name: '',
+    phone: '',
+    email: '',
+    address: '',
+  })
   const [formData, setFormData] = useState({
     product: '',
     customer: '',
@@ -21,6 +29,10 @@ export default function Sales() {
     deposit_amount: '0',
     due_date: '',
     notes: '',
+    discount_type: 'none',
+    discount_value: '0',
+    promotion_name: '',
+    selected_promotion: '',
   })
 
   const buildSalePayload = () => ({
@@ -32,6 +44,9 @@ export default function Sales() {
     deposit_amount: formData.payment_type === 'credit' ? Number(formData.deposit_amount || 0) : 0,
     due_date: formData.payment_type === 'credit' && formData.due_date ? formData.due_date : null,
     notes: formData.notes?.trim() || '',
+    discount_type: formData.discount_type || 'none',
+    discount_value: Number(formData.discount_value || 0),
+    promotion_name: formData.promotion_name || '',
   })
 
   const getErrorMessage = (error) => {
@@ -63,14 +78,16 @@ export default function Sales() {
 
   const fetchData = async () => {
     try {
-      const [salesRes, productsRes, customersRes] = await Promise.all([
+      const [salesRes, productsRes, customersRes, promotionsRes] = await Promise.all([
         salesAPI.getAll(),
         productsAPI.getAll(),
         customersAPI.getAll(),
+        promotionsAPI.getActive(),
       ])
       setSales(salesRes.data.results || salesRes.data)
       setProducts(productsRes.data.results || productsRes.data)
       setCustomers(customersRes.data.results || customersRes.data)
+      setActivePromotions(promotionsRes.data || [])
     } catch (error) {
       console.error('Failed to fetch data:', error)
     } finally {
@@ -101,7 +118,41 @@ export default function Sales() {
       deposit_amount: '0',
       due_date: '',
       notes: '',
+      discount_type: 'none',
+      discount_value: '0',
+      promotion_name: '',
+      selected_promotion: '',
     })
+    setShowAddCustomer(false)
+    setNewCustomerData({ name: '', phone: '', email: '', address: '' })
+  }
+
+  const handleAddNewCustomer = async () => {
+    if (!newCustomerData.name || !newCustomerData.phone) {
+      alert('Please enter customer name and phone number')
+      return
+    }
+
+    try {
+      const response = await customersAPI.create(newCustomerData)
+      const newCustomer = response.data
+      
+      // Add to customers list
+      setCustomers([...customers, newCustomer])
+      
+      // Select the new customer in the form
+      setFormData({ ...formData, customer: newCustomer.id })
+      
+      // Reset and close the add customer form
+      setNewCustomerData({ name: '', phone: '', email: '', address: '' })
+      setShowAddCustomer(false)
+      
+      alert('Customer added successfully!')
+    } catch (error) {
+      console.error('Failed to add customer:', error)
+      const errorMsg = error.response?.data?.name?.[0] || error.response?.data?.phone?.[0] || 'Failed to add customer'
+      alert(errorMsg)
+    }
   }
 
   const handleProductChange = (productId) => {
@@ -111,6 +162,47 @@ export default function Sales() {
       product: productId,
       unit_price: product ? product.selling_price : '',
     })
+  }
+
+  const handlePromotionChange = (promotionId) => {
+    if (!promotionId) {
+      setFormData({
+        ...formData,
+        selected_promotion: '',
+        discount_type: 'none',
+        discount_value: '0',
+        promotion_name: '',
+      })
+      return
+    }
+
+    const promotion = activePromotions.find(p => p.id === parseInt(promotionId))
+    if (promotion) {
+      setFormData({
+        ...formData,
+        selected_promotion: promotionId,
+        discount_type: promotion.discount_type,
+        discount_value: promotion.discount_value,
+        promotion_name: promotion.name,
+      })
+    }
+  }
+
+  const calculateTotals = () => {
+    const quantity = parseFloat(formData.quantity) || 0
+    const unitPrice = parseFloat(formData.unit_price) || 0
+    const subtotal = quantity * unitPrice
+
+    let discountAmount = 0
+    if (formData.discount_type === 'percentage') {
+      discountAmount = (subtotal * parseFloat(formData.discount_value || 0)) / 100
+    } else if (formData.discount_type === 'fixed') {
+      discountAmount = Math.min(parseFloat(formData.discount_value || 0), subtotal)
+    }
+
+    const total = subtotal - discountAmount
+
+    return { subtotal, discountAmount, total }
   }
 
   const columns = [
@@ -129,7 +221,17 @@ export default function Sales() {
     { header: 'Quantity', accessor: 'quantity' },
     { 
       header: 'Total Amount', 
-      render: (row) => `ZMW ${parseFloat(row.total_amount).toLocaleString()}`
+      render: (row) => (
+        <div>
+          <p className="font-medium">ZMW {parseFloat(row.total_amount).toLocaleString()}</p>
+          {row.discount_amount > 0 && (
+            <p className="text-xs text-green-600 flex items-center space-x-1">
+              <Percent className="w-3 h-3" />
+              <span>-K{parseFloat(row.discount_amount).toFixed(2)} discount</span>
+            </p>
+          )}
+        </div>
+      )
     },
     { 
       header: 'Profit', 
@@ -233,19 +335,82 @@ export default function Sales() {
             </div>
 
             <div>
-              <label className="label">Customer</label>
-              <select
-                className="input"
-                value={formData.customer}
-                onChange={(e) => setFormData({ ...formData, customer: e.target.value })}
-              >
-                <option value="">Walk-in customer</option>
-                {customers.map((customer) => (
-                  <option key={customer.id} value={customer.id}>
-                    {customer.name}
-                  </option>
-                ))}
-              </select>
+              <div className="flex items-center justify-between mb-2">
+                <label className="label mb-0">Customer</label>
+                <button
+                  type="button"
+                  onClick={() => setShowAddCustomer(!showAddCustomer)}
+                  className="text-xs text-primary-600 hover:text-primary-700 font-medium flex items-center space-x-1"
+                >
+                  <Plus className="w-3 h-3" />
+                  <span>{showAddCustomer ? 'Cancel' : 'Add New'}</span>
+                </button>
+              </div>
+              
+              {showAddCustomer ? (
+                <div className="space-y-3 p-4 bg-gray-50 rounded-lg border border-gray-200">
+                  <div>
+                    <label className="label text-xs">Customer Name *</label>
+                    <input
+                      type="text"
+                      className="input"
+                      placeholder="Enter customer name"
+                      value={newCustomerData.name}
+                      onChange={(e) => setNewCustomerData({ ...newCustomerData, name: e.target.value })}
+                    />
+                  </div>
+                  <div>
+                    <label className="label text-xs">Phone Number *</label>
+                    <input
+                      type="tel"
+                      className="input"
+                      placeholder="Enter phone number"
+                      value={newCustomerData.phone}
+                      onChange={(e) => setNewCustomerData({ ...newCustomerData, phone: e.target.value })}
+                    />
+                  </div>
+                  <div>
+                    <label className="label text-xs">Email (Optional)</label>
+                    <input
+                      type="email"
+                      className="input"
+                      placeholder="Enter email"
+                      value={newCustomerData.email}
+                      onChange={(e) => setNewCustomerData({ ...newCustomerData, email: e.target.value })}
+                    />
+                  </div>
+                  <div>
+                    <label className="label text-xs">Address (Optional)</label>
+                    <input
+                      type="text"
+                      className="input"
+                      placeholder="Enter address"
+                      value={newCustomerData.address}
+                      onChange={(e) => setNewCustomerData({ ...newCustomerData, address: e.target.value })}
+                    />
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleAddNewCustomer}
+                    className="btn btn-primary w-full text-sm"
+                  >
+                    Add Customer
+                  </button>
+                </div>
+              ) : (
+                <select
+                  className="input"
+                  value={formData.customer}
+                  onChange={(e) => setFormData({ ...formData, customer: e.target.value })}
+                >
+                  <option value="">Walk-in customer</option>
+                  {customers.map((customer) => (
+                    <option key={customer.id} value={customer.id}>
+                      {customer.name}
+                    </option>
+                  ))}
+                </select>
+              )}
             </div>
 
             <div>
@@ -271,7 +436,90 @@ export default function Sales() {
                 onChange={(e) => setFormData({ ...formData, unit_price: e.target.value })}
               />
             </div>
+          </div>
 
+          {/* Discount/Promotion Section */}
+          <div className="border-t border-gray-200 pt-4 mt-4">
+            <div className="flex items-center space-x-2 mb-3">
+              <Tag className="w-5 h-5 text-primary-600" />
+              <h3 className="font-semibold text-gray-900">Apply Discount or Promotion</h3>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="label">Select Promotion (Optional)</label>
+                <select
+                  className="input"
+                  value={formData.selected_promotion}
+                  onChange={(e) => handlePromotionChange(e.target.value)}
+                >
+                  <option value="">No promotion</option>
+                  {activePromotions
+                    .filter(promo => 
+                      promo.apply_to_all_products || 
+                      (formData.product && promo.product_ids?.includes(parseInt(formData.product)))
+                    )
+                    .map((promo) => (
+                      <option key={promo.id} value={promo.id}>
+                        {promo.name} ({promo.discount_type === 'percentage' 
+                          ? `${promo.discount_value}%` 
+                          : `K${promo.discount_value}`} off)
+                      </option>
+                    ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="label">Or Manual Discount Type</label>
+                <select
+                  className="input"
+                  value={formData.discount_type}
+                  onChange={(e) => setFormData({ 
+                    ...formData, 
+                    discount_type: e.target.value,
+                    selected_promotion: '',
+                    promotion_name: '',
+                  })}
+                  disabled={formData.selected_promotion}
+                >
+                  <option value="none">No Discount</option>
+                  <option value="percentage">Percentage Off (%)</option>
+                  <option value="fixed">Fixed Amount (K)</option>
+                </select>
+              </div>
+
+              {formData.discount_type !== 'none' && !formData.selected_promotion && (
+                <div>
+                  <label className="label">Discount Value</label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    max={formData.discount_type === 'percentage' ? '100' : undefined}
+                    className="input"
+                    value={formData.discount_value}
+                    onChange={(e) => setFormData({ ...formData, discount_value: e.target.value })}
+                    placeholder={formData.discount_type === 'percentage' ? '0-100' : 'Amount'}
+                  />
+                </div>
+              )}
+
+              {formData.discount_type !== 'none' && !formData.selected_promotion && (
+                <div>
+                  <label className="label">Discount Reason (Optional)</label>
+                  <input
+                    type="text"
+                    className="input"
+                    value={formData.promotion_name}
+                    onChange={(e) => setFormData({ ...formData, promotion_name: e.target.value })}
+                    placeholder="e.g., Loyal customer, Clearance"
+                  />
+                </div>
+              )}
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="label">Payment Type *</label>
               <select
@@ -324,10 +572,33 @@ export default function Sales() {
           </div>
 
           {formData.quantity && formData.unit_price && (
-            <div className="p-4 bg-gray-50 rounded-lg">
-              <p className="text-lg font-semibold text-gray-900">
-                Total: ZMW {(formData.quantity * formData.unit_price).toLocaleString()}
-              </p>
+            <div className="p-4 bg-primary-50 rounded-lg border border-primary-200">
+              <div className="space-y-2">
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-600">Subtotal:</span>
+                  <span className="font-medium">ZMW {calculateTotals().subtotal.toLocaleString()}</span>
+                </div>
+                {formData.discount_type !== 'none' && calculateTotals().discountAmount > 0 && (
+                  <>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-green-600 flex items-center space-x-1">
+                        <Percent className="w-4 h-4" />
+                        <span>Discount:</span>
+                      </span>
+                      <span className="font-medium text-green-600">
+                        -ZMW {calculateTotals().discountAmount.toLocaleString()}
+                      </span>
+                    </div>
+                    {formData.promotion_name && (
+                      <p className="text-xs text-gray-500 italic">"{formData.promotion_name}"</p>
+                    )}
+                  </>
+                )}
+                <div className="flex justify-between text-lg font-bold border-t border-primary-200 pt-2">
+                  <span className="text-gray-900">Total:</span>
+                  <span className="text-primary-600">ZMW {calculateTotals().total.toLocaleString()}</span>
+                </div>
+              </div>
             </div>
           )}
 

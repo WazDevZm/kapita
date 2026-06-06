@@ -14,6 +14,7 @@ from expenses.models import Expense
 from credits.models import Credit
 from customers.models import Customer
 from reinvestments.models import Reinvestment
+from outgoing_payments.models import OutgoingPayment
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated as DRFIsAuthenticated
 from .openai_client import call_openai_responses, OpenAIError
@@ -38,8 +39,18 @@ class DashboardSummaryView(APIView):
             total=Sum('amount')
         )['total'] or 0
         
+        # Outgoing payments metrics
+        total_outgoing_payments = OutgoingPayment.objects.filter(
+            user=user,
+            status='completed'
+        ).aggregate(
+            total=Sum('amount')
+        )['total'] or 0
+        outgoing_payments_count = OutgoingPayment.objects.filter(user=user).count()
+        recent_outgoing_payments = OutgoingPayment.objects.filter(user=user).order_by('-transaction_date')[:5]
+        
         # Net profit
-        net_profit = total_profit - total_expenses
+        net_profit = total_profit - total_expenses - total_outgoing_payments
         
         # Inventory metrics
         products = Product.objects.filter(user=user)
@@ -66,8 +77,14 @@ class DashboardSummaryView(APIView):
             total=Sum('amount')
         )['total'] or 0
         
+        # Calculate cash flow
+        total_amount_paid = Credit.objects.filter(user=user).aggregate(total=Sum('amount_paid'))['total'] or 0
+        total_inflow = total_revenue + total_amount_paid
+        total_outflow = total_expenses + total_reinvestment + total_outgoing_payments
+        net_cashflow = total_inflow - total_outflow
+        
         # Calculate capital
-        cash_available = total_revenue - total_expenses - total_reinvestment
+        cash_available = total_revenue - total_expenses - total_reinvestment - total_outgoing_payments
         current_capital = cash_available + inventory_value + credit_outstanding
         
         # Recent activity
@@ -93,6 +110,7 @@ class DashboardSummaryView(APIView):
             'summary': {
                 'total_revenue': float(total_revenue),
                 'total_expenses': float(total_expenses),
+                'total_outgoing_payments': float(total_outgoing_payments),
                 'net_profit': float(net_profit),
                 'current_capital': float(current_capital),
                 'cash_available': float(cash_available),
@@ -100,10 +118,24 @@ class DashboardSummaryView(APIView):
                 'credit_outstanding': float(credit_outstanding),
                 'total_reinvestment': float(total_reinvestment),
                 'personal_withdrawals': float(personal_withdrawals),
+                'total_inflow': float(total_inflow),
+                'total_outflow': float(total_outflow),
+                'net_cashflow': float(net_cashflow),
             },
             'recent_activity': {
                 'sales': SaleSerializer(recent_sales, many=True).data,
                 'expenses': ExpenseSerializer(recent_expenses, many=True).data,
+                'outgoing_payments': [
+                    {
+                        'id': p.id,
+                        'payment_type': p.payment_type,
+                        'amount': float(p.amount),
+                        'reference_number': p.reference,
+                        'status': p.status,
+                        'supplier': p.supplier.name if p.supplier else None,
+                        'transaction_date': p.transaction_date.isoformat()
+                    } for p in recent_outgoing_payments
+                ],
             },
             'alerts': {
                 'low_stock_count': len(low_stock_products),
@@ -117,7 +149,8 @@ class DashboardSummaryView(APIView):
                 'expenses': expenses_count,
                 'credits': credits_count,
                 'reinvestments': reinvestments_count,
-                'total': sales_count + products_count + customers_count + expenses_count + credits_count + reinvestments_count,
+                'outgoing_payments': outgoing_payments_count,
+                'total': sales_count + products_count + customers_count + expenses_count + credits_count + reinvestments_count + outgoing_payments_count,
             }
         })
 
@@ -184,35 +217,40 @@ class CashflowView(APIView):
         sales_qs = Sale.objects.filter(user=user)
         expenses_qs = Expense.objects.filter(user=user)
         reinvestments_qs = Reinvestment.objects.filter(user=user)
+        outgoing_payments_qs = OutgoingPayment.objects.filter(user=user)
         
         if start_date:
             sales_qs = sales_qs.filter(created_at__gte=start_date)
             expenses_qs = expenses_qs.filter(date__gte=start_date)
             reinvestments_qs = reinvestments_qs.filter(date__gte=start_date)
+            outgoing_payments_qs = outgoing_payments_qs.filter(transaction_date__gte=start_date)
         
         if end_date:
             sales_qs = sales_qs.filter(created_at__lte=end_date)
             expenses_qs = expenses_qs.filter(date__lte=end_date)
             reinvestments_qs = reinvestments_qs.filter(date__lte=end_date)
+            outgoing_payments_qs = outgoing_payments_qs.filter(transaction_date__lte=end_date)
         
         # Money in
         sales_revenue = sales_qs.aggregate(total=Sum('total_amount'))['total'] or 0
-        credit_payments = Credit.objects.filter(
-            user=user,
-            payments__created_at__gte=start_date if start_date else datetime.min,
-            payments__created_at__lte=end_date if end_date else datetime.now()
-        ).aggregate(total=Sum('payments__amount'))['total'] or 0
+        credit_payments = Credit.objects.filter(user=user)
+        if start_date:
+            credit_payments = credit_payments.filter(payments__created_at__gte=start_date)
+        if end_date:
+            credit_payments = credit_payments.filter(payments__created_at__lte=end_date)
+        credit_payments = credit_payments.aggregate(total=Sum('payments__amount'))['total'] or 0
         
         money_in = sales_revenue + credit_payments
         
         # Money out
         expenses_total = expenses_qs.aggregate(total=Sum('amount'))['total'] or 0
         reinvestments_total = reinvestments_qs.aggregate(total=Sum('amount'))['total'] or 0
+        outgoing_payments_total = outgoing_payments_qs.aggregate(total=Sum('amount'))['total'] or 0
         withdrawals = expenses_qs.filter(
             category='personal_withdrawal'
         ).aggregate(total=Sum('amount'))['total'] or 0
         
-        money_out = expenses_total + reinvestments_total
+        money_out = expenses_total + reinvestments_total + outgoing_payments_total
         
         # Net cashflow
         net_cashflow = money_in - money_out
@@ -227,6 +265,7 @@ class CashflowView(APIView):
                 'total': float(money_out),
                 'expenses': float(expenses_total),
                 'reinvestments': float(reinvestments_total),
+                'outgoing_payments': float(outgoing_payments_total),
                 'withdrawals': float(withdrawals),
             },
             'net_cashflow': float(net_cashflow),
@@ -309,7 +348,6 @@ class ReportsView(APIView):
         })
 
 
-
 class ProjectionsView(APIView):
     """30-day business projections"""
     permission_classes = [IsAuthenticated]
@@ -383,7 +421,6 @@ class ProjectionsView(APIView):
                 'credit_recovery_impact': float(outstanding_credit),
             }
         })
-
 
 
 class MonthlyAnalyticsView(APIView):

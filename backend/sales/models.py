@@ -25,6 +25,28 @@ class Sale(models.Model):
     )
     quantity = models.IntegerField()
     unit_price = models.DecimalField(max_digits=12, decimal_places=2)
+    
+    # Discount/Promotion fields
+    discount_type = models.CharField(
+        max_length=20,
+        choices=[('percentage', 'Percentage'), ('fixed', 'Fixed Amount'), ('none', 'No Discount')],
+        default='none',
+        blank=True
+    )
+    discount_value = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        default=0,
+        blank=True
+    )
+    discount_amount = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        default=0,
+        blank=True
+    )
+    promotion_name = models.CharField(max_length=255, blank=True, null=True)
+    
     total_amount = models.DecimalField(max_digits=12, decimal_places=2)
     payment_type = models.CharField(max_length=20, choices=PAYMENT_TYPES)
     
@@ -76,8 +98,17 @@ class Sale(models.Model):
         return 0
 
     def save(self, *args, **kwargs):
-        # Calculate total amount
-        self.total_amount = self.quantity * self.unit_price
+        # Calculate discount amount
+        if self.discount_type == 'percentage':
+            self.discount_amount = (self.quantity * self.unit_price * self.discount_value) / 100
+        elif self.discount_type == 'fixed':
+            self.discount_amount = min(self.discount_value, self.quantity * self.unit_price)
+        else:
+            self.discount_amount = 0
+        
+        # Calculate total amount after discount
+        subtotal = self.quantity * self.unit_price
+        self.total_amount = subtotal - self.discount_amount
         
         # Calculate remaining balance for credit sales
         if self.payment_type == 'credit':

@@ -27,6 +27,10 @@ export const useAuthStore = create((set, get) => ({
   setClerkSignOut: (fn) => set({ clerkSignOut: fn }),
 
   login: async (credentials) => {
+    // Clear any old tokens first
+    localStorage.removeItem('access_token')
+    localStorage.removeItem('refresh_token')
+    
     set({ loading: true, error: null })
     try {
       const response = await authAPI.login(credentials)
