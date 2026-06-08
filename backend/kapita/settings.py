@@ -16,10 +16,13 @@ SECRET_KEY = config('SECRET_KEY', default='django-insecure-change-this-in-produc
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = config('DEBUG', default=True, cast=bool)
 RENDER = config('RENDER', default=False, cast=bool)
+VERCEL = config('VERCEL', default=False, cast=bool)
 
 default_allowed_hosts = 'localhost,127.0.0.1'
 if RENDER:
     default_allowed_hosts = f"{default_allowed_hosts},*.onrender.com"
+if VERCEL:
+    default_allowed_hosts = f"{default_allowed_hosts},*.vercel.app"
 
 ALLOWED_HOSTS = config('ALLOWED_HOSTS', default=default_allowed_hosts).split(',')
 
@@ -152,7 +155,12 @@ STATIC_ROOT = BASE_DIR / 'staticfiles'
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 MEDIA_URL = '/media/'
-default_media_root = '/var/data/media' if RENDER else str(BASE_DIR / 'media')
+if RENDER:
+    default_media_root = '/var/data/media'
+elif VERCEL:
+    default_media_root = '/tmp/media'  # Vercel uses /tmp for writable files
+else:
+    default_media_root = str(BASE_DIR / 'media')
 MEDIA_ROOT = config('MEDIA_ROOT_PATH', default=default_media_root)
 
 if not DEBUG:
